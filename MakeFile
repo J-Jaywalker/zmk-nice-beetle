@@ -1,0 +1,15 @@
+.PHONY: beedly beedly_dithered beedly_all
+
+PYTHON := python
+SCRIPT := ./sprite_assets/generate_lvgl_c_arrays.py
+
+beedly:
+	@echo "=== Generating non-dithered LVGL assets ==="
+	$(PYTHON) $(SCRIPT)
+
+beedly_dithered:
+	@echo "=== Generating dithered LVGL assets ==="
+	$(PYTHON) $(SCRIPT) --dithered
+
+beedly_all: beedly beedly_dithered
+	@echo "=== All LVGL assets generated ==="
