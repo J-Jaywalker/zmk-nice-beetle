@@ -64,7 +64,14 @@ void draw_output_status(lv_obj_t *canvas, const struct status_state *state) {
         }
         break;
 
-    default: // ZMK_TRANSPORT_NONE (no endpoint available): no icon
+    default: /* ZMK_TRANSPORT_NONE: neither USB nor the preferred BLE profile is ready. Newer ZMK
+              * reports this instead of the preferred BLE endpoint, so show the BLE icon for the
+              * active profile: unbonded or no signal. */
+        if (state->active_profile_bonded) {
+            draw_ble_disconnected(canvas);
+        } else {
+            draw_ble_unbonded(canvas);
+        }
         break;
     }
 #else
