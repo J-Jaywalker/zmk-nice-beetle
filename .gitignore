@@ -1,2 +1,6 @@
 .venv
 sprite_assets/renders/**/*.c
+# simulator caches / build output
+.sim_cache/
+sim/build/
+__pycache__/

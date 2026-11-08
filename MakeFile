@@ -1,15 +1,30 @@
-.PHONY: beedly beedly_dithered beedly_all
+.PHONY: beedly beedly_dithered beedly_all sim sim-deps sim-clean sim-build sim-run sim-test sim-distclean
 
 PYTHON := python
 SCRIPT := ./sprite_assets/generate_lvgl_c_arrays.py
 
+# Beedly animation -> boards/shields/nice_oled/nice_epaper/assets/beedly_frames.c (compiled by
+# the firmware directly). Each target exports its .aseprite file(s) to sprite_assets/renders and
+# then regenerates the C file from BOTH render folders (plain + dithered).
+#   make beedly                  export beedly_ui.aseprite
+#   make beedly_dithered         export beedly_ui_dithered.aseprite
+#   make beedly_all              export both
+#   ... NO_ASEPRITE=1            skip Aseprite, rebuild the C file from the existing PNGs
+#   ... ASEPRITE="C:/path/Aseprite.exe"   Aseprite location (default C:\Program Files\Aseprite)
+BEEDLY_ARGS := $(if $(filter 1 y yes true,$(NO_ASEPRITE)),--skip-export) $(if $(ASEPRITE),--aseprite "$(ASEPRITE)")
+
 beedly:
-	@echo "=== Generating non-dithered LVGL assets ==="
-	$(PYTHON) $(SCRIPT)
+	@echo "=== Beedly (non-dithered sprite) -> LVGL 9 I1 frames ==="
+	$(PYTHON) $(SCRIPT) $(BEEDLY_ARGS)
 
 beedly_dithered:
-	@echo "=== Generating dithered LVGL assets ==="
-	$(PYTHON) $(SCRIPT) --dithered
+	@echo "=== Beedly (dithered sprite) -> LVGL 9 I1 frames ==="
+	$(PYTHON) $(SCRIPT) --dithered $(BEEDLY_ARGS)
 
-beedly_all: beedly beedly_dithered
-	@echo "=== All LVGL assets generated ==="
+beedly_all:
+	@echo "=== Beedly (both sprites) -> LVGL 9 I1 frames ==="
+	$(PYTHON) $(SCRIPT) --all $(BEEDLY_ARGS)
+
+# PC simulator of the status screens (see sim/README.md):
+#   make sim | sim-build | sim-run | sim-test | sim-deps | sim-clean | sim-distclean
+include sim/sim.mk

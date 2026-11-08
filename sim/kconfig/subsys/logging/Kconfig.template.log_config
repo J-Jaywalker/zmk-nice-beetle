@@ -1,0 +1,6 @@
+# Simplified stand-in for Zephyr's logging template (the sim prints LOG_* at
+# runtime when SIM_LOG=1 regardless of this level).
+config $(module)_LOG_LEVEL
+	int "$(module-str) log level"
+	depends on LOG
+	default 3

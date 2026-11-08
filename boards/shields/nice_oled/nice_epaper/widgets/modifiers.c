@@ -55,19 +55,19 @@ static void set_modifiers_text(lv_obj_t *label, struct modifiers_state state) {
 }
 */
 
-LV_IMG_DECLARE(dog_sit1_90);
-LV_IMG_DECLARE(dog_sit2_90);
-LV_IMG_DECLARE(dog_walk1_90);
-LV_IMG_DECLARE(dog_walk2_90);
-LV_IMG_DECLARE(dog_run1_90);
-LV_IMG_DECLARE(dog_run2_90);
-LV_IMG_DECLARE(dog_sneak1_90);
-LV_IMG_DECLARE(dog_sneak2_90);
+LV_IMAGE_DECLARE(dog_sit1_90);
+LV_IMAGE_DECLARE(dog_sit2_90);
+LV_IMAGE_DECLARE(dog_walk1_90);
+LV_IMAGE_DECLARE(dog_walk2_90);
+LV_IMAGE_DECLARE(dog_run1_90);
+LV_IMAGE_DECLARE(dog_run2_90);
+LV_IMAGE_DECLARE(dog_sneak1_90);
+LV_IMAGE_DECLARE(dog_sneak2_90);
 
-const lv_img_dsc_t *luna_imgs_sit_90[] = {&dog_sit1_90, &dog_sit2_90};
-const lv_img_dsc_t *luna_imgs_walk_90[] = {&dog_walk1_90, &dog_walk2_90};
-const lv_img_dsc_t *luna_imgs_run_90[] = {&dog_run1_90, &dog_run2_90};
-const lv_img_dsc_t *luna_imgs_sneak_90[] = {&dog_sneak1_90, &dog_sneak2_90};
+const lv_image_dsc_t *luna_imgs_sit_90[] = {&dog_sit1_90, &dog_sit2_90};
+const lv_image_dsc_t *luna_imgs_walk_90[] = {&dog_walk1_90, &dog_walk2_90};
+const lv_image_dsc_t *luna_imgs_run_90[] = {&dog_run1_90, &dog_run2_90};
+const lv_image_dsc_t *luna_imgs_sneak_90[] = {&dog_sneak1_90, &dog_sneak2_90};
 
 static lv_obj_t *luna_imgs = NULL; // Variable estática para almacenar el objeto animado
 
@@ -147,7 +147,7 @@ static void set_modifiers_text(lv_obj_t *label, struct modifiers_state ignored) 
         }
     } else {
         if (luna_imgs) {
-            lv_obj_del(luna_imgs);
+            lv_obj_delete(luna_imgs);
             luna_imgs = NULL;
         }
     }

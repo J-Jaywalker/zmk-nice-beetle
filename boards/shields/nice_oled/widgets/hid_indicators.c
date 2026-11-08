@@ -14,15 +14,16 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/display.h>
 #include <zmk/event_manager.h>
 #include <zmk/events/hid_indicators_changed.h>
+#include <zmk/hid_indicators.h>
 
 #define LED_NLCK 0x01
 #define LED_CLCK 0x02
 #define LED_SLCK 0x04
 
-LV_IMG_DECLARE(dog_bark1_90);
-LV_IMG_DECLARE(dog_bark2_90);
+LV_IMAGE_DECLARE(dog_bark1_90);
+LV_IMAGE_DECLARE(dog_bark2_90);
 
-const lv_img_dsc_t *luna_imgs_bark_90[] = {&dog_bark1_90, &dog_bark2_90};
+const lv_image_dsc_t *luna_imgs_bark_90[] = {&dog_bark1_90, &dog_bark2_90};
 static lv_obj_t *hid_anim = NULL;
 
 struct hid_indicators_state {
@@ -55,7 +56,7 @@ static void set_hid_indicators(lv_obj_t *label,
     }
   } else {
     if (hid_anim) {
-      lv_obj_del(hid_anim);
+      lv_obj_delete(hid_anim);
       hid_anim = NULL;
     }
     lv_label_set_text(label, "");
@@ -71,9 +72,13 @@ void hid_indicators_update_cb(struct hid_indicators_state state) {
 
 static struct hid_indicators_state
 hid_indicators_get_state(const zmk_event_t *eh) {
-  struct zmk_hid_indicators_changed *ev = as_zmk_hid_indicators_changed(eh);
+  // eh is NULL for the initial fetch from widget_hid_indicators_init(): read
+  // the current indicators of the active endpoint instead.
+  const struct zmk_hid_indicators_changed *ev =
+      (eh != NULL) ? as_zmk_hid_indicators_changed(eh) : NULL;
   return (struct hid_indicators_state){
-      .hid_indicators = ev->indicators,
+      .hid_indicators = (ev != NULL) ? ev->indicators
+                                     : zmk_hid_indicators_get_current_profile(),
   };
 }
 

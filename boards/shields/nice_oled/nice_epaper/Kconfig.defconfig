@@ -21,8 +21,10 @@ choice ZMK_DISPLAY_STATUS_SCREEN
     default ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
 endchoice
 
+# LVGL 9 objects and draw tasks are larger than LVGL 8's; ZMK's own nice_view custom screen
+# uses 8192 since the LVGL 9 update, and this screen has more objects than that one.
 config LV_Z_MEM_POOL_SIZE
-    default 4096 if ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+    default 8192 if ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
 
 config ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
     imply NICE_VIEW_WIDGET_STATUS
@@ -43,12 +45,13 @@ config NICE_OLED_GEM_ANIMATION_MS
     int "Animation length in milliseconds"
     default 960
 
+# LVGL 9: LV_USE_IMG is now LV_USE_IMAGE and LV_USE_ANIMATION no longer exists (animations are
+# always available). No built-in LVGL fonts are needed: all text uses pixel_operator_mono.
 config NICE_VIEW_WIDGET_STATUS
     select LV_USE_LABEL
-    select LV_USE_IMG
+    select LV_USE_IMAGE
     select LV_USE_CANVAS
     select LV_USE_ANIMIMG
-    select LV_USE_ANIMATION
 
 config NICE_VIEW_WIDGET_INVERTED
     bool "Invert display colors"
@@ -64,4 +67,4 @@ config NICE_VIEW_WIDGET_STATUS
 
 endif # !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
-endif # SHIELD_NICE_OLED_GEM
+endif # SHIELD_NICE_EPAPER

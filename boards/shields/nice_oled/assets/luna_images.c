@@ -1038,415 +1038,455 @@ const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST LV_ATTRIBUTE_IMG_DOG_SNEAK
 };
 
 /*------------------------------------------------------------------
- * DESCRIPTORES DE IMÁGEN (lv_img_dsc_t) PARA CADA FRAME
+ * DESCRIPTORES DE IMÁGEN (lv_image_dsc_t) PARA CADA FRAME
  *------------------------------------------------------------------*/
 
 /* DOG SIT1 */
-const lv_img_dsc_t dog_sit1 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
-    .header.w = 32, /* Ancho de la imagen */
-    .header.h = 22, /* Alto de la imagen */
+const lv_image_dsc_t dog_sit1 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
+    .header.w = 32,
+    .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_sit1_map),
     .data = dog_sit1_map,
 };
 
-const lv_img_dsc_t dog_sit1_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit1_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sit1_map_90),
     .data = dog_sit1_map_90,
 };
 
-const lv_img_dsc_t dog_sit1_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit1_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_sit1_map_180),
     .data = dog_sit1_map_180,
 };
 
-const lv_img_dsc_t dog_sit1_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit1_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sit1_map_270),
     .data = dog_sit1_map_270,
 };
 
 /* DOG SIT2 */
-const lv_img_dsc_t dog_sit2 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit2 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_sit2_map),
     .data = dog_sit2_map,
 };
 
-const lv_img_dsc_t dog_sit2_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit2_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sit2_map_90),
     .data = dog_sit2_map_90,
 };
 
-const lv_img_dsc_t dog_sit2_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit2_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_sit2_map_180),
     .data = dog_sit2_map_180,
 };
 
-const lv_img_dsc_t dog_sit2_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sit2_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sit2_map_270),
     .data = dog_sit2_map_270,
 };
 
 /* DOG WALK1 */
-const lv_img_dsc_t dog_walk1 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk1 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_walk1_map),
     .data = dog_walk1_map,
 };
 
-const lv_img_dsc_t dog_walk1_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk1_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_walk1_map_90),
     .data = dog_walk1_map_90,
 };
 
-const lv_img_dsc_t dog_walk1_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk1_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_walk1_map_180),
     .data = dog_walk1_map_180,
 };
 
-const lv_img_dsc_t dog_walk1_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk1_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_walk1_map_270),
     .data = dog_walk1_map_270,
 };
 
 /* DOG WALK2 */
-const lv_img_dsc_t dog_walk2 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk2 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_walk2_map),
     .data = dog_walk2_map,
 };
 
-const lv_img_dsc_t dog_walk2_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk2_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_walk2_map_90),
     .data = dog_walk2_map_90,
 };
 
-const lv_img_dsc_t dog_walk2_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk2_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_walk2_map_180),
     .data = dog_walk2_map_180,
 };
 
-const lv_img_dsc_t dog_walk2_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_walk2_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_walk2_map_270),
     .data = dog_walk2_map_270,
 };
 
 /* DOG RUN1 */
-const lv_img_dsc_t dog_run1 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run1 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_run1_map),
     .data = dog_run1_map,
 };
 
-const lv_img_dsc_t dog_run1_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run1_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_run1_map_90),
     .data = dog_run1_map_90,
 };
 
-const lv_img_dsc_t dog_run1_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run1_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_run1_map_180),
     .data = dog_run1_map_180,
 };
 
-const lv_img_dsc_t dog_run1_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run1_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_run1_map_270),
     .data = dog_run1_map_270,
 };
 
 /* DOG RUN2 */
-const lv_img_dsc_t dog_run2 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run2 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_run2_map),
     .data = dog_run2_map,
 };
 
-const lv_img_dsc_t dog_run2_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run2_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_run2_map_90),
     .data = dog_run2_map_90,
 };
 
-const lv_img_dsc_t dog_run2_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run2_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_run2_map_180),
     .data = dog_run2_map_180,
 };
 
-const lv_img_dsc_t dog_run2_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_run2_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_run2_map_270),
     .data = dog_run2_map_270,
 };
 
 /* DOG BARK1 */
-const lv_img_dsc_t dog_bark1 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark1 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_bark1_map),
     .data = dog_bark1_map,
 };
 
-const lv_img_dsc_t dog_bark1_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark1_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_bark1_map_90),
     .data = dog_bark1_map_90,
 };
 
-const lv_img_dsc_t dog_bark1_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark1_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_bark1_map_180),
     .data = dog_bark1_map_180,
 };
 
-const lv_img_dsc_t dog_bark1_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark1_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_bark1_map_270),
     .data = dog_bark1_map_270,
 };
 
 /* DOG BARK2 */
-const lv_img_dsc_t dog_bark2 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark2 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_bark2_map),
     .data = dog_bark2_map,
 };
 
-const lv_img_dsc_t dog_bark2_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark2_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_bark2_map_90),
     .data = dog_bark2_map_90,
 };
 
-const lv_img_dsc_t dog_bark2_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark2_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_bark2_map_180),
     .data = dog_bark2_map_180,
 };
 
-const lv_img_dsc_t dog_bark2_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_bark2_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_bark2_map_270),
     .data = dog_bark2_map_270,
 };
 
 /* DOG SNEAK1 */
-const lv_img_dsc_t dog_sneak1 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak1 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_sneak1_map),
     .data = dog_sneak1_map,
 };
 
-const lv_img_dsc_t dog_sneak1_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak1_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sneak1_map_90),
     .data = dog_sneak1_map_90,
 };
 
-const lv_img_dsc_t dog_sneak1_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak1_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_sneak1_map_180),
     .data = dog_sneak1_map_180,
 };
 
-const lv_img_dsc_t dog_sneak1_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak1_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sneak1_map_270),
     .data = dog_sneak1_map_270,
 };
 
 /* DOG SNEAK2 */
-const lv_img_dsc_t dog_sneak2 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak2 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 22,
+    .header.stride = 4,
     .data_size = sizeof(dog_sneak2_map),
     .data = dog_sneak2_map,
 };
 
-const lv_img_dsc_t dog_sneak2_90 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak2_90 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sneak2_map_90),
     .data = dog_sneak2_map_90,
 };
 
-const lv_img_dsc_t dog_sneak2_180 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak2_180 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 32,
     .header.h = 24,
+    .header.stride = 4,
     .data_size = sizeof(dog_sneak2_map_180),
     .data = dog_sneak2_map_180,
 };
 
-const lv_img_dsc_t dog_sneak2_270 = {
-    .header.cf = LV_IMG_CF_INDEXED_1BIT,
-    .header.always_zero = 0,
-    .header.reserved = 0,
+const lv_image_dsc_t dog_sneak2_270 = {
+    .header.magic = LV_IMAGE_HEADER_MAGIC,
+    .header.cf = LV_COLOR_FORMAT_I1,
+    .header.flags = 0,
     .header.w = 24,
     .header.h = 32,
+    .header.stride = 3,
     .data_size = sizeof(dog_sneak2_map_270),
     .data = dog_sneak2_map_270,
 };

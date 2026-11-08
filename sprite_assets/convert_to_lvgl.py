@@ -1,96 +1,133 @@
-from PIL import Image
+"""Convert PNG images to LVGL v9 C arrays in LV_COLOR_FORMAT_I1 (indexed 1-bit).
+
+Pixel rule (same as the sprites in sprite_assets/renders): a pixel is "ink" (palette index 1)
+when it is opaque (alpha >= 128) and dark (luminance < 128); everything else (transparent or
+light) is index 0. The firmware palette is
+    index 0 = transparent, index 1 = opaque black                (normal)
+    index 0 = opaque black, index 1 = transparent                (CONFIG_NICE_VIEW_WIDGET_INVERTED)
+which is exactly what the nice!view widgets used under LVGL 8.
+
+Rows are packed MSB first (leftmost pixel = bit 7), stride = (w + 7) // 8 bytes, padding bits 0.
+LVGL 9 I1 data = 2 palette entries (lv_color32_t, byte order B, G, R, A) followed by the rows.
+
+Library use: see generate_lvgl_c_arrays.py.
+CLI (standalone, for images that are not Beedly frames):
+    python sprite_assets/convert_to_lvgl.py <png file or directory> [...]
+writes <name>.c next to each PNG with an `lv_image_dsc_t <name>` you can paste into an asset file.
+"""
 import os
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
-sys.stderr.reconfigure(encoding='utf-8')
+from pathlib import Path
 
-def convert_png_to_lvgl_c_array(png_path):
-    img = Image.open(png_path).convert('P')
-    width, height = img.size
+from PIL import Image
 
-    palette = img.getpalette()
-    if palette is None:
-        raise ValueError(f"{png_path} has no palette. Convert to indexed mode with 2 colors first.")
+# lv_color32_t entries in memory order: blue, green, red, alpha.
+PALETTE_NORMAL = ((0x00, 0x00, 0x00, 0x00), (0x00, 0x00, 0x00, 0xFF))
+PALETTE_INVERTED = ((0x00, 0x00, 0x00, 0xFF), (0x00, 0x00, 0x00, 0x00))
 
-    num_colors = len(palette) // 3
-    if num_colors < 2:
-        raise ValueError(f"{png_path} palette has less than 2 colors. Need exactly 2 for 1-bit indexed.")
 
-    transparency_index = img.info.get('transparency', None)
+def image_to_bits(img: Image.Image):
+    """Return (w, h, rows) where rows[y][x] is 0/1 (1 = ink)."""
+    rgba = img.convert("RGBA")
+    w, h = rgba.size
+    px = rgba.load()
+    rows = []
+    for y in range(h):
+        row = []
+        for x in range(w):
+            r, g, b, a = px[x, y]
+            lum = (r * 299 + g * 587 + b * 114) // 1000
+            row.append(1 if (a >= 128 and lum < 128) else 0)
+        rows.append(row)
+    return w, h, rows
 
-    lvgl_palette = []
-    for i in range(2):
-        r = palette[i * 3 + 0]
-        g = palette[i * 3 + 1]
-        b = palette[i * 3 + 2]
-        a = 0 if transparency_index == i else 255
-        lvgl_palette.extend([r, g, b, a])
 
-    pixels = list(img.getdata())
-    packed_pixels = []
+def pack_rows(w, rows):
+    """Pack 0/1 rows MSB-first into bytes; returns list of per-row byte lists."""
+    stride = (w + 7) // 8
+    packed = []
+    for row in rows:
+        out = [0] * stride
+        for x, bit in enumerate(row):
+            if bit:
+                out[x >> 3] |= 0x80 >> (x & 7)
+        packed.append(out)
+    return packed
 
-    for row in range(height):
-        byte = 0
-        bits_filled = 0
-        for col in range(width):
-            px = pixels[row * width + col]
-            bit = 1 if px else 0
-            byte = (byte << 1) | bit
-            bits_filled += 1
-            if bits_filled == 8:
-                packed_pixels.append(byte)
-                byte = 0
-                bits_filled = 0
-        if bits_filled > 0:
-            byte = byte << (8 - bits_filled)
-            packed_pixels.append(byte)
 
-    total_size = len(lvgl_palette) + len(packed_pixels)
+def stride_of(w):
+    return (w + 7) // 8
 
-    output_lines = []
-    output_lines.append(f"/* Image size: {width} x {height} */")
-    output_lines.append(f"/* Data size: {total_size} bytes (palette + pixel data) */")
-    output_lines.append(f"static const uint8_t img_data[] = {{")
 
-    for i in range(0, len(lvgl_palette), 4):
-        output_lines.append(f"  0x{lvgl_palette[i]:02X}, 0x{lvgl_palette[i+1]:02X}, 0x{lvgl_palette[i+2]:02X}, 0x{lvgl_palette[i+3]:02X},")
+def fmt_bytes(values):
+    return ", ".join(f"0x{v:02x}" for v in values)
 
-    for i in range(0, len(packed_pixels), 12):
-        line = ", ".join(f"0x{b:02X}" for b in packed_pixels[i:i+12])
-        output_lines.append(f"  {line},")
 
-    output_lines.append("};\n")
-    output_lines.append("lv_img_dsc_t my_img = {")
-    output_lines.append("  .header = {")
-    output_lines.append("    .cf = LV_IMG_CF_INDEXED_1BIT,")
-    output_lines.append("    .always_zero = 0,")
-    output_lines.append("    .reserved = 0,")
-    output_lines.append(f"    .w = {width},")
-    output_lines.append(f"    .h = {height},")
-    output_lines.append("  },")
-    output_lines.append(f"  .data_size = {total_size},")
-    output_lines.append("  .data = img_data,")
-    output_lines.append("};")
+def palette_lines(palette, indent="    "):
+    return [f"{indent}{fmt_bytes(c)}, /*Color of index {i}*/" for i, c in enumerate(palette)]
 
-    base_name = os.path.splitext(os.path.basename(png_path))[0]
-    output_dir = os.path.dirname(png_path)
-    output_filename = os.path.join(output_dir, f"{base_name}.c")
 
-    with open(output_filename, "w") as f:
-        f.write("\n".join(output_lines))
+def standalone_c(name, w, h, rows):
+    """A self-contained LVGL 9 C file (with INVERTED palette switch) for one image."""
+    packed = pack_rows(w, rows)
+    lines = [
+        "#include <lvgl.h>",
+        "",
+        "#ifndef LV_ATTRIBUTE_MEM_ALIGN",
+        "#define LV_ATTRIBUTE_MEM_ALIGN",
+        "#endif",
+        "",
+        f"/* {w} x {h}, LV_COLOR_FORMAT_I1, stride {stride_of(w)} */",
+        f"const LV_ATTRIBUTE_MEM_ALIGN LV_ATTRIBUTE_LARGE_CONST uint8_t {name}_map[] = {{",
+        "#ifdef CONFIG_NICE_VIEW_WIDGET_INVERTED",
+        *palette_lines(PALETTE_INVERTED),
+        "#else",
+        *palette_lines(PALETTE_NORMAL),
+        "#endif",
+    ]
+    for row in packed:
+        lines.append(f"    {fmt_bytes(row)},")
+    lines += [
+        "};",
+        "",
+        f"const lv_image_dsc_t {name} = {{",
+        "    .header.magic = LV_IMAGE_HEADER_MAGIC,",
+        "    .header.cf = LV_COLOR_FORMAT_I1,",
+        "    .header.flags = 0,",
+        f"    .header.w = {w},",
+        f"    .header.h = {h},",
+        f"    .header.stride = {stride_of(w)},",
+        f"    .data_size = sizeof({name}_map),",
+        f"    .data = {name}_map,",
+        "};",
+        "",
+    ]
+    return "\n".join(lines)
 
-    print(f"OK - Converted {png_path} → {output_filename}")
 
-def convert_all_pngs_in_directory(directory="."):
-    for filename in os.listdir(directory):
-        if filename.lower().endswith(".png"):
-            png_path = os.path.join(directory, filename)
-            try:
-                convert_png_to_lvgl_c_array(png_path)
-            except Exception as e:
-                print(f"X Skipped {filename}: {e}")
+def c_identifier(stem):
+    s = "".join(ch if (ch.isalnum() or ch == "_") else "_" for ch in stem)
+    return s if not s[0].isdigit() else "img_" + s
+
+
+def convert_file(png_path: Path):
+    w, h, rows = image_to_bits(Image.open(png_path))
+    name = c_identifier(png_path.stem)
+    out = png_path.with_suffix(".c")
+    with open(out, "w", encoding="utf-8", newline="\n") as f:
+        f.write(standalone_c(name, w, h, rows))
+    print(f"OK - {png_path} -> {out} ({w}x{h})")
+
+
+def main(argv):
+    targets = argv or ["."]
+    for t in targets:
+        p = Path(t)
+        files = sorted(p.glob("*.png")) if p.is_dir() else [p]
+        for f in files:
+            convert_file(f)
+
 
 if __name__ == "__main__":
-    import sys
-    target_dir = sys.argv[1] if len(sys.argv) > 1 else "."
-    convert_all_pngs_in_directory(target_dir)
+    sys.stdout.reconfigure(encoding="utf-8")
+    main(sys.argv[1:])

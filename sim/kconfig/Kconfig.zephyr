@@ -1,0 +1,28 @@
+# Simulator stand-in for Zephyr's top-level Kconfig.zephyr (Zephyr 4.1, HWMv2).
+#
+# ZMK's app/Kconfig ends with `source "Kconfig.zephyr"`; $srctree points here.
+# We keep Zephyr's ordering for the parts that matter to the simulated firmware
+# (shield defconfigs before board defconfigs before devicetree-derived symbols
+# before modules) and define the handful of Zephyr/SoC symbols ZMK and this
+# repo depend on in Kconfig.stubs.  gen_config.py writes the files under
+# $(KCONFIG_BINARY_DIR) the way Zephyr's CMake would.
+
+osource "$(KCONFIG_BINARY_DIR)/Kconfig.shield.defconfig"
+# boards/Kconfig.defconfig of every board directory (base nice_nano + ZMK's zmk variant)
+osource "$(KCONFIG_BOARD_DIR)/Kconfig.defconfig"
+
+# devicetree-derived DT_HAS_*_ENABLED / DT_COMPAT_* symbols (gen_driver_kconfig_dts.py)
+source "$(KCONFIG_BINARY_DIR)/Kconfig.dts"
+
+menu "Modules"
+source "$(KCONFIG_BINARY_DIR)/Kconfig.modules"
+source "$(ZEPHYR_BASE)/modules/lvgl/Kconfig"
+endmenu
+
+# boards/Kconfig + boards/Kconfig.v2 equivalent: BOARD_<name>, BOARD_<target>, BOARD_REVISION...
+source "$(KCONFIG_BINARY_DIR)/Kconfig.board.v2"
+osource "$(KCONFIG_BOARD_DIR)/Kconfig.$(BOARD)"
+osource "$(KCONFIG_BOARD_DIR)/Kconfig"
+osource "$(KCONFIG_BINARY_DIR)/Kconfig.shield"
+
+source "Kconfig.stubs"

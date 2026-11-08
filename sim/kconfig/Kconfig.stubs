@@ -1,0 +1,191 @@
+# Zephyr / SoC level symbols that ZMK and this repo reference.  Only the
+# symbols that change what the simulated firmware compiles are defined here;
+# everything else evaluates to n exactly as an undefined symbol would.
+
+# --- nRF52840 (nice!nano v2) SoC facts ---
+config SOC_SERIES_NRF52X
+	bool
+config SOC_NRF52840_QIAA
+	bool
+config HAS_HW_NRF_USBD
+	def_bool y
+config CPU_HAS_FPU
+	def_bool y
+config ARCH_POSIX
+	bool
+config ARM_MPU
+	bool
+config PINCTRL
+	bool
+config GPIO
+	bool
+config USE_DT_CODE_PARTITION
+	bool
+config BUILD_OUTPUT_UF2
+	bool
+config MPU_ALLOW_FLASH_WRITE
+	bool
+config NVS
+	bool
+config FLASH
+	bool
+config FLASH_PAGE_LAYOUT
+	bool
+config FLASH_MAP
+	bool
+config SOC_DCDC_NRF52X
+	bool
+config SOC_DCDC_NRF52X_HV
+	bool
+
+# --- subsystems ---
+config BT
+	bool
+config BT_CTLR
+	bool
+config BT_SMP
+	bool
+config BT_PERIPHERAL
+	bool
+config BT_CENTRAL
+	bool
+config BT_DIS
+	bool
+config BT_SETTINGS
+	bool
+config BT_DEVICE_NAME
+	string "BT device name"
+config BT_GATT_ENFORCE_SUBSCRIPTION
+	bool
+	default y
+config BT_CTLR_TX_PWR_PLUS_8
+	bool
+config SETTINGS
+	bool
+config SETTINGS_NVS
+	bool
+config USB
+	bool
+config USB_DEVICE_STACK
+	bool "USB device stack"
+config USB_DEVICE_HID
+	bool
+config USB_NRFX
+	bool
+config USB_CDC_ACM
+	bool
+config SERIAL
+	bool
+config UART_INTERRUPT_DRIVEN
+	bool
+config UART_LINE_CTRL
+	bool
+config DISPLAY
+	bool
+config KSCAN
+	bool
+config SENSOR
+	bool
+config LOG
+	bool
+config I2C
+	bool
+config SPI
+	bool
+config SSD1306
+	bool "SSD1306"
+config LS0XX
+	bool
+	default y if DISPLAY && DT_HAS_SHARP_LS0XX_ENABLED
+config RING_BUFFER
+	bool
+config CRC
+	bool
+config REBOOT
+	bool
+config FPU
+	bool
+config DEBUG
+	bool
+config ASSERT
+	bool
+config INPUT
+	bool
+config POWEROFF
+	bool
+config PM_DEVICE
+	bool
+config HEAP_MEM_POOL_SIZE
+	int
+	default 0
+config SYSTEM_WORKQUEUE_STACK_SIZE
+	int
+	default 1024
+config NUM_PREEMPT_PRIORITIES
+	int
+	default 15
+config KERNEL_BIN_NAME
+	string
+config USB_DEVICE_PRODUCT
+	string
+config USB_DEVICE_VID
+	hex
+config USB_DEVICE_PID
+	hex
+config USB_DEVICE_MANUFACTURER
+	string
+config BT_DIS_PNP_VID
+	hex
+config BT_DIS_PNP_PID
+	hex
+config BT_DIS_MODEL
+	string
+config BT_DIS_MANUF
+	string
+config BT_DEVICE_APPEARANCE
+	int
+config BT_DEVICE_NAME_MAX
+	int
+config KERNEL_INIT_PRIORITY_DEFAULT
+	int
+	default 40
+config KERNEL_INIT_PRIORITY_DEVICE
+	int
+	default 50
+config APPLICATION_INIT_PRIORITY
+	int
+	default 90
+config SYS_CLOCK_TICKS_PER_SEC
+	int
+	default 32768
+config SYS_CLOCK_HW_CYCLES_PER_SEC
+	int
+	default 32768
+config LV_Z_POINTER_KSCAN
+	bool
+config LV_Z_USE_FILESYSTEM
+	bool
+config FILE_SYSTEM
+	bool
+config BT_MAX_PAIRED
+	int
+config BT_MAX_CONN
+	int
+config BT_DEVICE_NAME_DYNAMIC
+	bool
+config BT_ID_MAX
+	int
+	default 1
+config SYS_HEAP_ALLOC_LOOPS
+	int
+	default 3
+config SYS_HEAP_SMALL_ONLY
+	bool
+config SYS_HEAP_RUNTIME_STATS
+	bool
+config SYS_CLOCK_MAX_TIMEOUT_DAYS
+	int
+	default 365
+config SYS_CLOCK_MAX_TIMEOUT_DAYS
+	int
+	default 365

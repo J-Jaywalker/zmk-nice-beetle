@@ -1,0 +1,90 @@
+# Headless smoke test for the simulator:  make sim-test
+# (sim.exe --headless --script sim/examples/smoke.txt --png ... --gif ...)
+# Times are virtual milliseconds.  Positions are ZMK matrix positions 0..41
+# (row by row, left to right; 36..41 are the thumbs).  See sim/README.md.
+
+# boot: split link up, BLE profile 0 paired with a host that is in range
+at 600 expect split.central == 1
+expect split.peripheral == 1
+expect connected == 1
+expect transport == ble
+expect layer == ALPH-WIN
+
+# type on both halves: left keys are scanned by the central, right keys by
+# the peripheral and forwarded over the split link
+at 1000 type hello world
+wait 300
+expect typed contains "hello world"
+expect wpm > 0
+
+# hold &mo ARROWS (pos 40, right thumb)
+wait 300
+press 40
+wait 300
+expect layer == ARROWS
+screenshot sim/build/out/smoke_arrows.png
+release 40
+wait 200
+expect layer == ALPH-WIN
+
+# home-row mod: hold pos 13 (&hm LGUI A) past the tapping term
+wait 300
+press 13
+wait 400
+expect mods == 8
+screenshot sim/build/out/smoke_lgui.png
+release 13
+wait 300
+expect mods == 0
+
+# the computer turns caps lock on (LED output report back to the keyboard)
+leds caps
+wait 200
+expect leds == 2
+screenshot sim/build/out/smoke_caps.png
+leds none
+wait 200
+expect leds == 0
+
+# per-half power: plug the central into USB (charging + USB HID), drain the
+# peripheral; batteries are only re-sampled every 60 s by ZMK's battery.c
+battery peripheral 20
+battery central 95
+usb central hid
+wait 300
+expect usb.central == hid
+expect transport == usb
+output ble
+wait 100
+expect transport == ble
+usb central none
+
+# split link drop: a right-half key press is lost, as on hardware
+split off
+wait 200
+expect split.central == 0
+tap 7
+wait 200
+expect typed contains "hello world"
+split on
+wait 1000
+expect split.central == 1
+
+# idle after CONFIG_ZMK_IDLE_TIMEOUT (30 s) without key presses
+wait 31000
+expect activity == idle
+
+# battery.c stops sampling while idle and samples immediately on wake-up.
+# Each half has its own activity state: a left key wakes only the central,
+# so the peripheral still reports its old level ...
+at 40000 expect battery.peripheral == 60
+tap 1
+wait 300
+expect activity == active
+expect battery.central == 95
+expect battery.peripheral == 60
+# ... until a right-half key wakes it too
+tap 7
+wait 300
+expect battery.peripheral == 20
+screenshot sim/build/out/smoke_battery.png

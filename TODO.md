@@ -10,6 +10,9 @@ A living and ever expanding list of improvements and ideas to improve Beedly.
   - [X] Integrate with a `Makefile`
   - [X] Output to same folder with `.gitignore` support
   - [X] Add requirements file for Python dependencies
+- [X] Port the widgets to LVGL 9 / ZMK `main` (Zephyr 4.1)
+  - [X] `make beedly` writes the firmware frame file (`beedly_frames.c`) directly, no copy-paste
+- [ ] Verify the LVGL 9 port on hardware (layout, rotation, Luna animations, inverted colours)
 
 ---
 

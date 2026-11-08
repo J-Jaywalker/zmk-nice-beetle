@@ -1,0 +1,13 @@
+[
+  "# JSON form of a script: strings are text-syntax lines, objects use at/wait + cmd (+ args)",
+  {"at": 800, "cmd": "expect layer == ALPH-WIN"},
+  {"at": 1000, "cmd": "press", "args": [40]},
+  {"wait": 300, "cmd": "expect layer == ARROWS"},
+  {"cmd": "screenshot", "args": ["sim/build/out/json_arrows.png"]},
+  {"cmd": "release", "args": [40]},
+  {"wait": 300, "cmd": "press", "args": [41]},
+  {"wait": 300, "cmd": "expect", "args": ["layer", "==", "BT+LAYER"]},
+  {"cmd": "release", "args": [41]},
+  {"wait": 300, "cmd": "tap", "args": [1, 40]},
+  {"wait": 300, "cmd": "expect typed == \"q\""}
+]
