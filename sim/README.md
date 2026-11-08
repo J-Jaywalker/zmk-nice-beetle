@@ -14,7 +14,7 @@ underneath are replaced (see [Accuracy](#accuracy-report)).
 ```
 make sim                    # fetch, generate, build, open the window
 make sim-watch              # window + rebuild/hot-reload on every save (animation work)
-make sim-test               # headless scripted smoke test, writes PNG + GIF
+make sim-test               # headless scripted tests (smoke + central Beedly), PNG + GIF
 make sim-deps               # check/install the MSYS2 toolchain (pacman)
 make sim-clean              # remove sim/build (keeps the .sim_cache downloads)
 ```
@@ -69,7 +69,7 @@ The simulator maps the old name with a warning and builds for
 | `SIM_LVGL_MAJOR=9` | LVGL major of the widget sources (mismatch warning only) |
 | `SIM_OFFLINE=1` | no network, use what is in `.sim_cache` |
 | `SIM_REFRESH=1` | re-resolve ZMK `main` now instead of at most hourly |
-| `SIM_WATCH_ART=beedly` | make target `sim-watch` runs when `sprite_assets/ase/*` changes (empty = never) |
+| `SIM_WATCH_ART=auto` | make target `sim-watch` runs when `sprite_assets/ase/*` changes: `auto` = per file (`beedly_left.aseprite` -> `beedly_left`, ...), a target name = always that one, empty = never |
 | `SIM_JOBS=N` | parallel compile jobs (default: number of CPUs) |
 | `PANEL_EMU=ideal\|memlcd` | display model, default `ideal` (see below) |
 | `SIM_ARGS="..."` | extra `sim.exe` arguments, e.g. `SIM_ARGS="--script my.txt"` |
@@ -85,8 +85,11 @@ make sim-watch
 
 builds, opens the window and keeps it open. Then just edit and save:
 
-* `sprite_assets/ase/*.aseprite` -> runs `make beedly` (export + regenerate the
-  firmware asset C file), then rebuilds;
+* `sprite_assets/ase/*.aseprite` -> runs the matching export target, then
+  rebuilds: `beedly_ui.aseprite` -> `make beedly`, `beedly_ui_dithered.aseprite`
+  -> `make beedly_dithered`, `beedly_left.aseprite` -> `make beedly_left`
+  (central Beedly), any other file -> `make beedly_all`
+  (`SIM_WATCH_ART=<target>` forces one target, `SIM_WATCH_ART=` none);
 * anything under `boards/` (widgets, assets, Kconfig, overlay), `sim/shim`,
   `sim/kconfig` -> rebuilds.
 
@@ -100,6 +103,63 @@ the window to stop. Without the watcher the same works by hand: keep
 another terminal. `make beedly NO_ASEPRITE=1` skips Aseprite and rebuilds the
 C file from the PNGs in `sprite_assets/renders/` (handy when you draw the
 frames in another tool).
+
+### Central Beedly (left half, replaces the Luna dog)
+
+The central screen's Beedly comes from `sprite_assets/ase/beedly_left.aseprite`
+(32x32). Each animation is an **Aseprite tag**: `Idle`, `Walk`, `Sprint`,
+`Shift`, `Ctrl`, `Alt`, `CAPSLOCK` (case-insensitive; a missing tag stops the
+export with an error, extra tags are ignored). Workflow:
+
+1. edit `beedly_left.aseprite` in Aseprite (add/remove frames, move tag
+   ranges - the C code needs no change, the frame counts are generated);
+2. `make beedly_left` exports every frame + the tag list to
+   `sprite_assets/renders/beedly_left/` (`frame_<n>.png` rotated to the panel
+   orientation, `tags.json`) and writes
+   `boards/shields/nice_oled/nice_epaper/assets/beedly_luna_frames.c/.h`
+   (`NO_ASEPRITE=1` rebuilds them from the PNGs + `tags.json`);
+3. `make sim` to look at it, or keep `make sim-watch` open: saving the
+   `.aseprite` file runs steps 2 and the rebuild by itself;
+4. `make sim-test` re-checks every animation (below).
+
+The sprite is drawn light-on-dark (a dark `bg` layer): the light pixels are
+Beedly. In the simulator, as on the panel, that ink uses the screen's
+foreground colour like the text.
+
+Which animation plays (`widgets/beedly_slot.c`, one LVGL object):
+Gui held -> Idle (there is no Gui tag; Gui used to make Luna sit), else Alt ->
+Alt, else Ctrl -> Ctrl, else Shift -> Shift (first match wins, the old Luna
+priority), else Caps Lock on -> CAPSLOCK, else by WPM: below
+`CONFIG_NICE_BEETLE_LUNA_WALK_WPM` (15) Idle, below
+`CONFIG_NICE_BEETLE_LUNA_SPRINT_WPM` (70) Walk, otherwise Sprint. Releasing a
+key or turning Caps Lock off falls back down this list, normally to the WPM
+animation. Num Lock / Scroll Lock show nothing. Frame times:
+`CONFIG_NICE_BEETLE_LUNA_{IDLE,WALK,SPRINT}_FRAME_MS` (480/100/100 ms per frame)
+and the old `..._MODIFIERS_INDICATORS_LUNA_ANIMATION_MS` /
+`..._HID_INDICATORS_LUNA_ANIMATION_MS` (300 ms per two frames).
+
+`make sim-test` runs `sim/examples/beedly.txt` after the smoke test, dumps
+every frame (`sim/build/out/beedly/frames/`, plus `beedly.gif` and
+screenshots per state) and runs `sim/tools/check_beedly.py`. Its
+`#@beedly <from>..<to> <tag>` lines say which tag must be on screen in that
+window; the checker cuts the 32x32 slot out of every dumped frame and
+requires a pixel-exact match with a frame of that tag (wrong animation,
+stale/overlapping image, rotation, mirroring, clipping and position all
+fail), every frame of the tag to show up, the mean frame time to match the
+configuration, and the rows just above/below the slot to be empty (no
+overlap with the battery text / WPM graph). The scenario covers idle, walk
+(auto typer 40 WPM), sprint (120 WPM), Shift/Ctrl/Alt/Gui held alone and
+together, Caps Lock on/off (and Shift over Caps Lock), releases back to the
+WPM animation, the window's PC Left Alt/Ctrl/Shift/Win keys (`pckey`), and a
+constant LVGL heap (no leaked objects). The checker also fails when a
+Shift/Ctrl/Alt/CAPSLOCK frame is identical to another tag's frame (the art
+once had a Ctrl frame copied into the Alt tag, so held Alt flipped between
+"ALT" and "Ctrl"); `make beedly_left` warns about the same thing.
+`--log FILE` records, at debug level, every PC key and the Corne key it
+pressed (`ui: PC Left Alt -> key 36 (LALT)`), window focus loss, and every
+Beedly animation change with the modifier byte (`beedly: mods 0x04 ...`).
+LVGL advances animations from its ~33 ms timer, so a single 100 ms frame can
+be on screen for 40..160 ms (as with the old Luna); the average is exact.
 
 Notes: the simulator runs each DLL from a copy in `sim/build/bin/shadow/`, so
 builds can overwrite the DLLs while it runs. A change that relinks `sim.exe`
@@ -123,8 +183,13 @@ the active layer's bindings.
 * **PC keyboard** (by physical position, layout independent):
   `Tab`/`Esc`/`` ` ``, `Q`..`T`, `Y`..`P`, `Backspace`/`[` = top row;
   `CapsLock`, `A`..`G`, `H`..`;`, `'` = home row; `LShift`, `Z`..`B`, `N`..`/`,
-  `RShift` = bottom row; thumbs `LCtrl` `LAlt` `Space` | `Enter` `RAlt`
-  `RCtrl`/`Menu`.
+  `RShift` = bottom row; thumbs `LCtrl` `LAlt`/`LWin` `Space` | `Enter` `RAlt`
+  `RCtrl`/`Menu`. Exception: the LEFT modifier keys `LShift` `LCtrl` `LAlt`
+  `LWin` press the key that is plain `&kp <that modifier>` on the active
+  layer (alphred_kb ALPH-WIN: PC Left Alt -> `&kp LALT` on position 36, PC
+  Left Ctrl -> `&kp LCTRL` on 38, PC Win -> `&kp LGUI` on 37), so Alt on the
+  PC is Alt on the keyboard; only when the layer has no such key the position
+  above is used. Hold-tap modifiers (`&hm LEFT_ALT S`) are never used for this.
 * **Controls** (buttons, and keys): F1/F2 central battery -/+10, F3/F4
   peripheral battery -/+10, F5/F6 central/peripheral USB none -> powered
   (charging) -> hid, F7 next BLE profile, F8 host present for the active
@@ -182,6 +247,7 @@ wait <time>               cursor += time   (alias: sleep)
 | Command | |
 |---|---|
 | `press <pos>` / `release <pos>` | matrix position 0..41 (row by row, left to right; 36..41 = thumbs) |
+| `pckey <key> down\|up` | a PC keyboard key through the window's mapping (`lalt`, `lctrl`, `lshift`, `lgui`, `ralt`, `rctrl`, `rshift` or an SDL key name with `_` for spaces, e.g. `Left_Alt`, `Space`) |
 | `tap <pos> [hold=40]` | press now, release after `hold` ms; the cursor moves on to release + 30 ms |
 | `type <text>` | taps letters, `, . / ; '` and space by QWERTY position (40 ms hold + 40 ms gap each); other characters are skipped with a warning. What comes out depends on the keymap |
 | `battery <central\|peripheral\|both> <0..100>` | also `c`/`p`/`left`/`right` |
@@ -351,5 +417,6 @@ shim/                  Zephyr/ZMK replacements compiled into each MCU DLL
 kconfig/               Kconfig stubs for things the real tree gets from the SoC
 tools/                 fetch_deps.py, gen_config.py, setup_toolchain.py,
                        cmake_sources.py, watch.py (make sim-watch)
-examples/              smoke.txt (make sim-test), layers.json
+examples/              smoke.txt, beedly.txt (make sim-test), layers.json
+tools/check_beedly.py  frame checker for beedly.txt
 ```

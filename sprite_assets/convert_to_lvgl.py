@@ -24,6 +24,11 @@ from PIL import Image
 # lv_color32_t entries in memory order: blue, green, red, alpha.
 PALETTE_NORMAL = ((0x00, 0x00, 0x00, 0x00), (0x00, 0x00, 0x00, 0xFF))
 PALETTE_INVERTED = ((0x00, 0x00, 0x00, 0xFF), (0x00, 0x00, 0x00, 0x00))
+# Inverted screens (CONFIG_NICE_VIEW_WIDGET_INVERTED) draw on a BLACK background, where
+# PALETTE_INVERTED's black ink is invisible (checked in the simulator). This one keeps the
+# background transparent and draws the ink in white, the inverted foreground colour, like the
+# Luna/images.c assets do; used by generate_beedly_left.py.
+PALETTE_INVERTED_WHITE_INK = ((0x00, 0x00, 0x00, 0x00), (0xFF, 0xFF, 0xFF, 0xFF))
 
 
 def image_to_bits(img: Image.Image):

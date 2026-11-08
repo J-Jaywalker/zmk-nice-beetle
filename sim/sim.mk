@@ -4,8 +4,9 @@
 #   make sim-build    same, without running (incremental: only what changed)
 #   make sim-run      run the already-built simulator
 #   make sim-watch    build, open the window, then rebuild + hot-reload on every
-#                     save of a widget/asset/config file (and run `make beedly`
-#                     when sprite_assets/ase/* changes) - see sim/README.md
+#                     save of a widget/asset/config file (and run `make beedly`,
+#                     `beedly_dithered` or `beedly_left` when the matching
+#                     sprite_assets/ase/*.aseprite changes) - see sim/README.md
 #   make sim-test     headless scripted smoke test (sim/examples/smoke.txt)
 #   make sim-deps     check / install the MSYS2 toolchain (gcc, SDL2) via pacman
 #   make sim-clean    remove simulator build output (keeps the .sim_cache downloads)
@@ -23,8 +24,10 @@
 #                      hourly; see sim/tools/fetch_deps.py --max-age)
 #   PANEL_EMU=ideal|memlcd  display model: ideal 1-bit panel (default) or Sharp
 #                      memory LCD (ls0xx) bus timing / line-by-line update
-#   SIM_WATCH_ART=beedly  make target sim-watch runs when the sprite sources
-#                      change (empty: never)
+#   SIM_WATCH_ART=auto make target sim-watch runs when the sprite sources
+#                      change: auto = per file (beedly_left.aseprite ->
+#                      beedly_left, ...), a target name = always that one,
+#                      empty = never
 #   SIM_ARGS="..."     extra arguments for sim.exe (see sim/README.md), e.g.
 #                      SIM_ARGS="--script sim/examples/smoke.txt --headless --gif out.gif"
 #   SIM_MSYS2=C:/msys64  MSYS2 install root
@@ -100,7 +103,7 @@ sim-run:
 
 # edit -> see loop: the window stays open; sim/tools/watch.py rebuilds on save
 # (offline, incremental) and sim.exe --watch cold-boots the rebuilt half
-SIM_WATCH_ART ?= beedly
+SIM_WATCH_ART ?= auto
 SIM_PASS_VARS = $(foreach v,KEYMAP CONF WEST ZMK_REV SIM_LVGL_MAJOR SIM_MSYS2,$(if $($(v)),--build-arg "$(v)=$($(v))",))
 sim-watch: sim-build
 	$(SIM_WAIT_EXE)
@@ -109,9 +112,16 @@ sim-watch: sim-build
 	  -- $(SIM_BUILD)/bin/sim.exe --watch $(SIM_PANEL_ARG) $(SIM_ARGS)
 
 # headless smoke test: scripted input, expectations, PNG + GIF output
+#   then the central Beedly scenario (sim/examples/beedly.txt): every frame is dumped and
+#   sim/tools/check_beedly.py compares the Beedly slot with the expected Aseprite tag (the
+#   frame check needs the pixel-exact ideal panel, so it always runs with --panel ideal)
+SIM_BEEDLY_OUT := $(SIM_BUILD)/out/beedly
 sim-test: sim-build
 	$(SIM_WAIT_EXE)
 	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/smoke.txt $(SIM_PANEL_ARG) --png $(SIM_BUILD)/out/smoke.png --gif $(SIM_BUILD)/out/smoke.gif $(SIM_ARGS)
+	@rm -rf $(SIM_BEEDLY_OUT)/frames && mkdir -p $(SIM_BEEDLY_OUT)/frames
+	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/beedly.txt --panel ideal --frames $(SIM_BEEDLY_OUT)/frames --png $(SIM_BEEDLY_OUT)/final.png --gif $(SIM_BEEDLY_OUT)/beedly.gif
+	$(SIM_PY) $(SIM_DIR)/tools/check_beedly.py --frames $(SIM_BEEDLY_OUT)/frames --script $(SIM_DIR)/examples/beedly.txt
 
 # parallel compile by default (NUMBER_OF_PROCESSORS is set by Windows); an
 # explicit make -jN wins

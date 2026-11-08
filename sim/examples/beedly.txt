@@ -1,0 +1,140 @@
+# Central Beedly (replaces the Luna dog) - run by `make sim-test`:
+#   sim.exe --headless --script sim/examples/beedly.txt --frames sim/build/out/beedly/frames ...
+#   python sim/tools/check_beedly.py --frames sim/build/out/beedly/frames --script sim/examples/beedly.txt
+# `#@beedly <from>..<to> <tag>` lines are the checker's expectations: every dumped frame in that
+# window (absolute virtual ms) must show a frame of that Aseprite tag in the slot, with the
+# configured frame time, and nothing in the rows around the slot. Times are absolute (`at`).
+#
+# Matrix positions (alphred_kb ALPH-WIN layer): 24 = LSHIFT, 36 = LALT, 37 = LGUI, 38 = LCTRL
+# (plain &kp keys on the left half, so no hold-tap timing is involved).
+# Precedence under test: Gui (Idle) > Alt > Ctrl > Shift > Caps Lock > WPM (Idle/Walk/Sprint).
+
+# ---- boot: WPM 0 -> Idle
+at 600 expect wpm == 0
+# LVGL heap in use after boot; checked again at the end: the modifier / Caps Lock / WPM switches
+# reuse the one Beedly object, so nothing is allocated or leaked (update both numbers together
+# if a screen layout change moves the boot value)
+at 1500 expect heap == 2480
+#@beedly 800..4800 idle
+at 4000 screenshot sim/build/out/beedly/idle.png
+
+# ---- single modifiers, each released back to Idle
+at 5000 press 24
+at 5100 expect mods == lshift
+#@beedly 5200..6900 shift
+at 6000 screenshot sim/build/out/beedly/shift.png
+at 7000 release 24
+#@beedly 7100..8900 idle
+
+at 9000 press 38
+at 9100 expect mods == lctrl
+#@beedly 9200..10900 ctrl
+at 10000 screenshot sim/build/out/beedly/ctrl.png
+at 11000 release 38
+#@beedly 11100..11900 idle
+
+at 12000 press 36
+at 12100 expect mods == lalt
+#@beedly 12200..13900 alt
+at 13000 screenshot sim/build/out/beedly/alt.png
+at 14000 release 36
+#@beedly 14100..14900 idle
+
+# ---- several modifiers at once
+at 15000 press 24
+#@beedly 15100..15900 shift
+at 16000 press 38
+#@beedly 16100..16900 ctrl
+at 16500 screenshot sim/build/out/beedly/shift_ctrl.png
+at 17000 press 36
+#@beedly 17100..17900 alt
+at 18000 press 37
+at 18100 expect mods == lshift+lctrl+lalt+lgui
+#@beedly 18100..18900 idle
+at 19000 release 37
+#@beedly 19100..19900 alt
+at 20000 release 36
+#@beedly 20100..20900 ctrl
+at 21000 release 38
+#@beedly 21100..21900 shift
+at 22000 release 24
+at 22100 expect mods == 0
+#@beedly 22100..22900 idle
+
+# ---- Caps Lock (the computer's LED report): CAPSLOCK, a held modifier wins, off -> Idle
+at 23000 leds caps
+at 23100 expect leds == caps
+#@beedly 23100..24900 capslock
+at 24000 screenshot sim/build/out/beedly/capslock.png
+at 25000 press 24
+#@beedly 25100..25900 shift
+at 26000 release 24
+#@beedly 26100..26900 capslock
+at 27000 leds num scroll
+#@beedly 27100..27900 idle
+at 28000 leds none
+at 28100 expect leds == 0
+#@beedly 28100..29900 idle
+
+# ---- WPM: auto typer at 40 WPM -> Walk (ZMK's WPM restarts its average every 5 s, so allow
+# a few seconds for it to settle)
+at 30000 autotype 40
+at 37000 expect wpm >= 15
+expect wpm < 70
+#@beedly 37000..40900 walk
+at 39000 screenshot sim/build/out/beedly/walk.png
+# Gui while walking -> Idle; released -> Walk again
+at 41000 press 37
+#@beedly 41100..42900 idle
+at 43000 release 37
+#@beedly 43100..44900 walk
+# Shift while walking -> Shift; released -> Walk
+at 45000 press 24
+#@beedly 45100..45900 shift
+at 46000 release 24
+#@beedly 46100..46900 walk
+
+# ---- 120 WPM -> Sprint (also the WPM graph at its maximum, under the slot)
+at 47000 autotype 120
+at 54000 expect wpm >= 70
+#@beedly 54000..57900 sprint
+at 57000 screenshot sim/build/out/beedly/sprint.png
+# Ctrl while sprinting -> Ctrl; released -> Sprint
+at 58000 press 38
+#@beedly 58100..58900 ctrl
+at 59000 release 38
+#@beedly 59100..59900 sprint
+
+# ---- stop typing: WPM falls back to 0 -> Idle
+at 60000 autotype off
+at 68000 expect wpm == 0
+#@beedly 68000..70000 idle
+at 70000 screenshot sim/build/out/beedly/idle_again.png
+
+# ---- the simulator window's PC keyboard path (`pckey` = what ui.c does with a PC key event):
+# PC Left Alt/Ctrl/Shift/Win press the layer's &kp of that modifier, held for 2 s each.
+# (Regression: PC Left Alt used to press position 37 = LGUI; and the Alt tag's second frame was
+# a copy of the Ctrl frame, so a held Alt alternated between "ALT" and "Ctrl" labels.)
+at 71000 pckey lalt down
+at 71100 expect mods == lalt
+#@beedly 71100..72900 alt
+at 72000 screenshot sim/build/out/beedly/pc_lalt.png
+at 73000 pckey lalt up
+at 73100 expect mods == 0
+#@beedly 73100..73900 idle
+at 74000 pckey lctrl down
+at 74100 expect mods == lctrl
+#@beedly 74100..75900 ctrl
+at 76000 pckey lctrl up
+at 76500 pckey lshift down
+at 76600 expect mods == lshift
+#@beedly 76600..77900 shift
+at 78000 pckey lshift up
+at 78500 pckey lgui down
+at 78600 expect mods == lgui
+#@beedly 78600..79900 idle
+at 80000 pckey lgui up
+at 80100 expect mods == 0
+
+at 80400 expect heap == 2480
+at 80500 end

@@ -6,7 +6,10 @@ something changes it rebuilds; sim.exe notices the rebuilt central.dll /
 peripheral.dll and cold-boots that half from it, without closing the window.
 
 * sprite sources (default sprite_assets/ase/**) changed -> `make <art target>`
-  (default `beedly`, which writes the firmware asset C file) then the build
+  (writes the firmware asset C file) then the build. With the default
+  `--art-target auto` the target follows the file: beedly_ui.aseprite -> beedly,
+  beedly_ui_dithered.aseprite -> beedly_dithered, beedly_left.aseprite ->
+  beedly_left (central Beedly), anything else -> beedly_all
 * firmware / shield / shim / config sources changed      -> the build only
 
 The build is `make sim-build SIM_OFFLINE=1 ...`: no network, config generation
@@ -22,6 +25,12 @@ import time
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 SKIP_DIRS = {".git", "__pycache__", "build", "renders"}
+ART_TARGETS = {  # --art-target auto: sprite file -> make target
+    "beedly_ui.aseprite": "beedly",
+    "beedly_ui_dithered.aseprite": "beedly_dithered",
+    "beedly_left.aseprite": "beedly_left",
+}
+ART_FALLBACK = "beedly_all"
 
 
 def snapshot(roots):
@@ -73,8 +82,9 @@ def main():
     ap.add_argument("--make", default="make")
     ap.add_argument("--build-arg", action="append", default=[],
                     help="extra make arguments for the rebuild (VAR=value)")
-    ap.add_argument("--art-target", default="beedly",
-                    help="make target that turns the sprite sources into the asset C file ('' = none)")
+    ap.add_argument("--art-target", default="auto",
+                    help="make target that turns the sprite sources into the asset C files "
+                         "('auto' = per file, see above; '' = none)")
     ap.add_argument("--art", action="append", default=None,
                     help="sprite source dirs/files (default sprite_assets/ase)")
     ap.add_argument("--src", action="append", default=None,
@@ -89,7 +99,17 @@ def main():
     art = [os.path.join(REPO, p) for p in (a.art or ["sprite_assets/ase"])]
     src = [os.path.join(REPO, p) for p in (a.src or ["boards", "sim/shim", "sim/kconfig"])]
     build = [a.make, "--no-print-directory", "sim-build", "SIM_OFFLINE=1", *a.build_arg]
-    art_cmd = [a.make, "--no-print-directory", a.art_target] if a.art_target else None
+
+    def art_cmds(files):
+        if not a.art_target:
+            return []
+        if a.art_target != "auto":
+            targets = [a.art_target]
+        else:
+            targets = sorted({ART_TARGETS.get(os.path.basename(f), ART_FALLBACK) for f in files})
+            if ART_FALLBACK in targets:
+                targets = [ART_FALLBACK]  # beedly_all already covers the others
+        return [[a.make, "--no-print-directory", t] for t in targets]
 
     print(f"[sim-watch] starting {' '.join(sim_cmd)}", flush=True)
     sim = subprocess.Popen(sim_cmd, cwd=REPO)
@@ -114,8 +134,8 @@ def main():
             for p in (c_art + c_src)[:8]:
                 print(f"[sim-watch] changed: {rel(p)}", flush=True)
             ok = True
-            if c_art and art_cmd:
-                ok = run(art_cmd)
+            for cmd in art_cmds(c_art):
+                ok = ok and run(cmd)
             if ok:
                 run(build)
             # the build/art step may itself have written watched files (the asset C file):

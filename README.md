@@ -40,6 +40,30 @@ You can use any PNG instead. Either:
 - Save your frames as `sprite_assets/renders/beedly_ui/frame_0.png`, `frame_1.png`, ... (115x68, opaque black on transparent; `beedly_ui_dithered` for the dithered variant) and run `make beedly NO_ASEPRITE=1`; or
 - Convert an image with the [LVGL image converter](https://lvgl.io/tools/imageconverter): select **LVGL v9**, colour format **I1** (indexed 1-bit) and C array output. In your own asset file, keep the converter's `lv_image_dsc_t` (`.header.magic = LV_IMAGE_HEADER_MAGIC`, `.header.cf = LV_COLOR_FORMAT_I1`, `.header.w`, `.header.h`, `.header.stride = (w + 7) / 8`, `.data_size`, `.data`) and its pixel bytes (everything after the two 4-byte palette entries at the top of the `..._map[]` array), but replace those two palette entries with the firmware's palette: `BEEDLY_PALETTE` in `beedly_frames.c`, or the `#if CONFIG_NICE_VIEW_WIDGET_INVERTED` palette lines used in the other asset files, so the image follows the inverted setting. `python sprite_assets/convert_to_lvgl.py <png or folder>` produces the same kind of C file locally.
 
+# Changing the central (left half) animation
+
+The central screen shows a smaller Beedly where the original nice!oled showed the Luna dog. It comes from `sprite_assets/ase/beedly_left.aseprite` (32x32, drawn light on a dark `bg` layer; the light pixels are Beedly, drawn in the screen's text colour on a transparent background, so it also works with `CONFIG_NICE_VIEW_WIDGET_INVERTED`). Every animation is an Aseprite **tag**, and the firmware picks one:
+
+| Tag | Shown when |
+| --- | --- |
+| `Idle` | below 15 WPM, and while Gui/Super is held (there is no Gui tag) |
+| `Walk` | 15 to 69 WPM |
+| `Sprint` | 70 WPM and above |
+| `Shift` / `Ctrl` / `Alt` | that modifier is held |
+| `CAPSLOCK` | Caps Lock is on (Num Lock and Scroll Lock show nothing) |
+
+When several apply, the first of Gui, Alt, Ctrl, Shift, Caps Lock wins (the old Luna priority), otherwise the WPM animation plays. Releasing the keys returns to the WPM animation. Thresholds and frame times are Kconfig options in `boards/shields/nice_oled/nice_epaper/Kconfig.defconfig` (`CONFIG_NICE_BEETLE_LUNA_WALK_WPM`, `..._SPRINT_WPM`, `..._IDLE_FRAME_MS`, `..._WALK_FRAME_MS`, `..._SPRINT_FRAME_MS`). The modifier and Caps Lock speeds still use `CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS_LUNA_ANIMATION_MS` and `CONFIG_NICE_OLED_WIDGET_HID_INDICATORS_LUNA_ANIMATION_MS`, which give the time for two frames.
+
+Edit the file in Aseprite. You can add frames to a tag or move tag ranges, but keep the seven tag names. Then run:
+
+| Command | What it does |
+| --- | --- |
+| `make beedly_left` | Exports `beedly_left.aseprite` (frames + tag list) to `sprite_assets/renders/beedly_left/` and regenerates `assets/beedly_luna_frames.c` and `.h` |
+| `make beedly_left NO_ASEPRITE=1` | Regenerates them from the PNGs and `tags.json` already there |
+| `make beedly_all` | Also runs `beedly_left` |
+
+A missing tag stops the export with an error that lists the tags found. Frame counts are generated, so the C code never needs editing. Preview with `make sim`, or keep `make sim-watch` open, which re-exports and reloads when you save the `.aseprite` file. `make sim-test` checks every animation frame by frame (see [sim/README.md](sim/README.md#central-beedly-left-half-replaces-the-luna-dog)).
+
 Make sure your keymap repo's `west.yml` points to this repo (instead of zmk-nice-oled) and the corresponding branch, and you're good to go.
 
 # Simulator (preview screens on your PC)

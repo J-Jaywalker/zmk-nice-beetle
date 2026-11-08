@@ -227,10 +227,8 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     widget_wpm_status_init();
 
 #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_WPM)
+    // Beedly (ex Luna): the shared slot positions itself (BEEDLY_SLOT_* in beedly_slot.h)
     zmk_widget_luna_init(&luna_widget, canvas);
-
-    // ori: lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 36, 0);
-    lv_obj_align(zmk_widget_luna_obj(&luna_widget), LV_ALIGN_TOP_LEFT, 100, 15);
 #endif
 
 #if IS_ENABLED(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS)

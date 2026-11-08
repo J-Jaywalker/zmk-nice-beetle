@@ -1,0 +1,58 @@
+{
+  "durations_ms": [
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100,
+    100
+  ],
+  "frame_count": 14,
+  "ink": "light",
+  "source": "sprite_assets/ase/beedly_left.aseprite",
+  "tags": {
+    "Alt": {
+      "direction": "forward",
+      "from": 10,
+      "to": 11
+    },
+    "CAPSLOCK": {
+      "direction": "forward",
+      "from": 12,
+      "to": 13
+    },
+    "Ctrl": {
+      "direction": "forward",
+      "from": 8,
+      "to": 9
+    },
+    "Idle": {
+      "direction": "forward",
+      "from": 0,
+      "to": 1
+    },
+    "Shift": {
+      "direction": "forward",
+      "from": 6,
+      "to": 7
+    },
+    "Sprint": {
+      "direction": "forward",
+      "from": 4,
+      "to": 5
+    },
+    "Walk": {
+      "direction": "forward",
+      "from": 2,
+      "to": 3
+    }
+  }
+}

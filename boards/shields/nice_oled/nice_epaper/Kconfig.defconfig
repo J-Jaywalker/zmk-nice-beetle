@@ -65,6 +65,38 @@ if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 config NICE_VIEW_WIDGET_STATUS
     select ZMK_WPM
 
+# Central Beedly (replaces the Luna dog; widgets/beedly_slot.c). The animations are the tags of
+# sprite_assets/ase/beedly_left.aseprite. Durations are PER FRAME, so a tag with more frames plays
+# longer instead of faster.
+
+config NICE_BEETLE_LUNA_WALK_WPM
+    int "WPM at which the central Beedly switches from Idle to Walk"
+    default 15
+
+config NICE_BEETLE_LUNA_SPRINT_WPM
+    int "WPM at which the central Beedly switches from Walk to Sprint"
+    default 70
+
+config NICE_BEETLE_LUNA_IDLE_FRAME_MS
+    int "Central Beedly Idle animation: milliseconds per frame"
+    default 960
+
+config NICE_BEETLE_LUNA_WALK_FRAME_MS
+    int "Central Beedly Walk animation: milliseconds per frame"
+    default 200
+
+config NICE_BEETLE_LUNA_SPRINT_FRAME_MS
+    int "Central Beedly Sprint animation: milliseconds per frame"
+    default 200
+
+config NICE_BEETLE_LUNA_MODIFIER_FRAME_MS
+    int "Central Beedly Shift/Ctrl/Alt animations: milliseconds per frame"
+    default 600
+
+config NICE_BEETLE_LUNA_CAPSLOCK_FRAME_MS
+    int "Central Beedly Caps Lock animation: milliseconds per frame"
+    default 300
+
 endif # !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
 endif # SHIELD_NICE_EPAPER

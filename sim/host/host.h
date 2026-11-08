@@ -193,6 +193,7 @@ void host_composite_size(int scale, int *w, int *h);
 void host_composite(int scale, uint8_t *dst);
 int host_save_screenshot(const char *path);
 void host_log(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+void host_logf(int level, const char *fmt, ...) __attribute__((format(printf, 2, 3))); /* level 0..4 (4 = debug: --log FILE / --log-level 4) */
 const char *host_mods_str(uint8_t mods, char *buf, size_t n);
 void host_autotype_set(int wpm);
 
@@ -209,5 +210,7 @@ int script_exec_line(const char *line, int64_t t, const char *where);
 /* -------------------------------------------------------------- ui.c */
 
 int ui_run(void);
+/* window PC-keyboard path (also used by the script command `pckey`); 0 ok, -1 unknown key */
+int ui_pc_key(const char *name, bool down);
 
 #endif

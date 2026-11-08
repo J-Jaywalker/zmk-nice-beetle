@@ -69,20 +69,76 @@ for whoever continues the work. Nothing has been committed.
   APPDATA/LOCALAPPDATA/USERPROFILE/TEMP/TMP, which MSYS2 make started from Git Bash drops; without
   them Aseprite never exits).
 
+## Central Beedly (replaces Luna) - checkpoint
+- Pipeline: `sprite_assets/generate_beedly_left.py` (`make beedly_left`, part of `beedly_all`,
+  `NO_ASEPRITE`/`ASEPRITE` as the other targets). Aseprite `-b --list-tags --data ... --format
+  json-array --save-as frame_{frame}.png`; tags resolved by name (case-insensitive, direction
+  honoured), missing tag = error. Frames normalised to black-on-transparent with ink = LIGHT
+  pixels (the sprite is white on a dark `bg` layer; `--ink dark` for the other convention),
+  rotated 90 degrees clockwise like the peripheral frames and the Luna `_90` images (checked in
+  the sim: upright, not mirrored, same as the Aseprite canvas). Output
+  `renders/beedly_left/{frame_<n>.png,tags.json}` and `assets/beedly_luna_frames.c/.h` (per-tag
+  arrays + counts, deterministic, byte-identical reruns).
+- Firmware: `widgets/beedly_slot.c/.h` owns the ONE lv_animimg (child of the canvas, created once,
+  never deleted); luna.c (WPM), modifiers.c (explicit mods read in the display callback) and
+  hid_indicators.c (caps bit only) just report state. Precedence Gui(Idle) > Alt > Ctrl > Shift >
+  Caps > WPM; the object is only reconfigured when the chosen animation changes. Position
+  `BEEDLY_SLOT_TOP 31` / `LEFT 18` (upright coordinates; text ends row 29, the WPM graph reaches
+  row 64 at max). `assets/luna_images.c` is no longer compiled (file kept); the OLED variant
+  (`boards/shields/nice_oled/widgets`, `CONFIG_NICE_EPAPER_ON=n`) still uses Luna, not ported.
+  The old empty-label clipping bug of modifiers.c/hid_indicators.c is gone with the slot.
+- New Kconfig (nice_epaper/Kconfig.defconfig, central only): `NICE_BEETLE_LUNA_WALK_WPM` 15,
+  `_SPRINT_WPM` 70, `_IDLE_FRAME_MS` 480, `_WALK_FRAME_MS` 100, `_SPRINT_FRAME_MS` 100 (per frame
+  = the old Luna cycle / 2). Mod/caps speed = old `*_LUNA_ANIMATION_MS` / 2 per frame.
+  `NICE_OLED_WIDGET_{MODIFIERS,HID}_INDICATORS_LUNA=n` now disable those animations;
+  `..._LUNA_ONLY_CAPSLOCK` has no effect any more (Num/Scroll Lock never animate).
+- Inverted colours: the shared `PALETTE_INVERTED` (index 0 opaque black, index 1 transparent)
+  makes black ink on the inverted screen's black background, i.e. invisible: verified in the sim
+  with `CONFIG_NICE_VIEW_WIDGET_INVERTED=y` (CONF=corne.conf + that line), where the PERIPHERAL
+  Beedly (beedly_frames.c, unchanged) shows nothing. The central frames use the new
+  `PALETTE_INVERTED_WHITE_INK` (transparent / white) and show white Beedly there (checked).
+  Pre-existing peripheral bug left as is (open issue).
+- Tests: `sim/examples/beedly.txt` + `sim/tools/check_beedly.py`, both run by `make sim-test`
+  (forced `--panel ideal` for the frame check). 29 window checks + 14 `expect`s, heap constant at
+  2480 bytes through the run (peak C=4084, was 4600 with Luna).
+- `make sim-watch`: `watch.py --art-target auto` maps the changed .aseprite to its target
+  (beedly / beedly_dithered / beedly_left; others -> beedly_all). Exercised with a stand-in sim
+  process: touching beedly_left.aseprite ran `make beedly_left` then `sim-build`.
+
+## Bug: held Alt "switches between alt and ctrl" (fixed)
+- Root cause: the ART. In beedly_left.aseprite the Alt tag's 2nd frame (index 11) was a copy of
+  the Ctrl tag's 2nd frame (index 9) including the `keypress` layer (^ + "Ctrl" label); only the
+  invisible `bg` cel differed. The firmware played Alt frames 10/11 correctly, so the screen
+  alternated "ALT"/"Ctrl" every 150 ms. Logs showed one steady mods byte (no Ctrl bit).
+  Fixed with an Aseprite batch Lua script: frame 12 (1-based) `keypress` cel replaced by a copy
+  of frame 11's (Alt label); beetle layers untouched. Original kept nowhere in the repo but
+  recoverable from git (`git show HEAD:sprite_assets/ase/beedly_left.aseprite`).
+- Second, related: the window mapped PC keys by position, so PC Left Alt pressed position 37
+  (`&kp LGUI` -> Idle) and PC Left Ctrl pressed 36 (`&kp LALT`). ui.c now maps the LEFT
+  modifiers by function (active layer's plain `&kp` of that modifier, positional fallback; PC
+  LWin falls back to 37). Right modifiers stay positional (RAlt/RCtrl = right thumb layer keys).
+- Regression: `pckey` script command (ui.c `ui_pc_key()` -> the same `pc_key()` the SDL handler
+  calls) + a PC-key section in beedly.txt; check_beedly.py fails on key-tag frames identical to
+  another tag's (with the original art: 3+ FAIL lines, make sim-test exits non-zero).
+- Real OS-level injection into the window (keybd_event from PowerShell) was unreliable from
+  the agent session (window focus could not be held; one run delivered LAlt as key 37 = LGUI
+  and lost focus after 0.36 s), so the window's SDL dispatch itself is verified only by reading
+  ui.c; everything below it is exercised by `pckey`.
+
 ## Not verified / open issues
+- Central Beedly on real hardware (flash): unverified, as everything else here.
+- Peripheral Beedly is invisible with CONFIG_NICE_VIEW_WIDGET_INVERTED=y (palette, see above).
 - `make sim-watch` art step (watcher -> `make beedly`) not exercised end to end; its parts were.
 - Reboot model / settings persistence / ZMK_SLEEP (needs HAS_POWEROFF) / kscan debounce: as before.
-- Modifier/caps Luna (modifiers.c, hid_indicators.c) are created as children of an empty label at
-  offset (100,15), so they are clipped by the label and don't show. Pre-existing: LVGL 8.3 clips
-  children the same way (no LV_OBJ_FLAG_OVERFLOW_VISIBLE), the port didn't change the structure.
-  Not changed because it would alter what the firmware shows; a widget design fix if wanted.
+- (fixed by the central Beedly slot) modifier/caps animations used to be children of an empty
+  label and were clipped, i.e. never visible on hardware either.
 - Window not DPI-aware; untested UI buttons as before.
 
 ## Commands
 ```
 make sim                      # window (PANEL_EMU=memlcd, KEYMAP=..., SIM_ARGS=... optional)
 make sim-watch                # window + rebuild/hot reload on save
-make sim-test                 # headless smoke test -> sim/build/out/
+make sim-test                 # headless smoke + central Beedly tests -> sim/build/out/
 make sim-build SIM_OFFLINE=1  # incremental build, no network
 sim/build/bin/sim.exe --help  # all options
 ```

@@ -28,7 +28,7 @@ A living and ever expanding list of improvements and ideas to improve Beedly.
   - [ ] Basic mood states (happy, hungry, tired, annoyed)
   - [ ] Optional: store "stats" in persistent memory or host-only flash
 
-- [ ] Beedly to replace Luna animations on LHS peripheral. 
+- [X] Beedly to replace Luna animations on the LHS (central) screen (`beedly_left.aseprite`, `make beedly_left`)
 
 ---
 

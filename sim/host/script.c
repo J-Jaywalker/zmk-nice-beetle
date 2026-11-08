@@ -538,6 +538,19 @@ static int run_cmd(const char *cmd, int64_t t, const char *where, int mode, int6
             host_key_ref(pos, name[0] == 'p');
         return 0;
     }
+    if (!strcmp(name, "pckey")) {
+        /* a key of the PC keyboard, through the window's mapping (ui.c), e.g. pckey lalt down */
+        bool down;
+        if (!next_tok(&p, a1, sizeof a1) || !next_tok(&p, a2, sizeof a2) ||
+            next_tok(&p, extra, sizeof extra) ||
+            !((down = !strcmp(a2, "down")) || !strcmp(a2, "up"))) {
+            report(mode, where, "error: usage: pckey <lalt|lctrl|lshift|lgui|SDL_key_name> down|up");
+            return -1;
+        }
+        if (exec && ui_pc_key(a1, down) != 0)
+            report(mode, where, "warning: pckey: '%s' is not mapped to a key", a1);
+        return 0;
+    }
     if (!strcmp(name, "tap")) {
         int pos;
         int64_t hold = TYPE_HOLD_MS;

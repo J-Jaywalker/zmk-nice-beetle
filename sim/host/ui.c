@@ -506,7 +506,8 @@ static int scancode_pos(SDL_Scancode sc) {
     case SDL_SCANCODE_SLASH: return 34;
     case SDL_SCANCODE_RSHIFT: return 35;
     case SDL_SCANCODE_LCTRL: return 36;
-    case SDL_SCANCODE_LALT: return 37;
+    case SDL_SCANCODE_LALT:
+    case SDL_SCANCODE_LGUI: return 37;
     case SDL_SCANCODE_SPACE: return 38;
     case SDL_SCANCODE_RETURN:
     case SDL_SCANCODE_KP_ENTER: return 39;
@@ -517,9 +518,96 @@ static int scancode_pos(SDL_Scancode sc) {
     }
 }
 
+/*
+ * The PC's LEFT modifier keys are mapped by FUNCTION: they press the key of the active layer
+ * whose binding is plain `&kp <that modifier>` (e.g. PC Left Alt -> alphred_kb's `&kp LALT` on
+ * position 36), so holding Alt on the PC holds Alt on the keyboard. Mapping them by position
+ * made PC Left Alt press position 37 (`&kp LGUI`) and PC Left Ctrl position 36 (`&kp LALT`).
+ * Hold-taps (`&hm LEFT_ALT S`) are not used (they would type their tap key). When the active
+ * layer has no such key the physical position below is used. The right-hand modifiers stay
+ * positional: RAlt/RCtrl are the right thumb keys (layer keys in most keymaps).
+ */
+static const struct {
+    SDL_Scancode sc;
+    const char *labels[7];
+} fn_mods[] = {
+    {SDL_SCANCODE_LCTRL, {"LCTRL", "LCTL", "LEFT_CONTROL", NULL}},
+    {SDL_SCANCODE_LSHIFT, {"LSHIFT", "LSHFT", "LEFT_SHIFT", NULL}},
+    {SDL_SCANCODE_LALT, {"LALT", "LEFT_ALT", NULL}},
+    {SDL_SCANCODE_LGUI,
+     {"LGUI", "LEFT_GUI", "LWIN", "LEFT_WIN", "LCMD", "LEFT_COMMAND", "LMETA"}},
+};
+
+static int modifier_pos(SDL_Scancode sc) {
+    int layer = (int)host_query(HALF_CENTRAL, SIM_Q_HIGHEST_LAYER);
+    for (size_t m = 0; m < sizeof fn_mods / sizeof fn_mods[0]; m++) {
+        if (fn_mods[m].sc != sc) {
+            continue;
+        }
+        for (int pos = 0; pos < host_num_keys(); pos++) {
+            const char *lbl = host_key_label(layer, pos);
+            for (int i = 0; i < 7 && fn_mods[m].labels[i]; i++) {
+                if (!strcmp(lbl, fn_mods[m].labels[i])) {
+                    return pos;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+static int pc_key_pos(SDL_Scancode sc) {
+    int pos = modifier_pos(sc);
+    return pos >= 0 ? pos : scancode_pos(sc);
+}
+
 static int8_t sc_held_pos[SDL_NUM_SCANCODES]; /* pos+1 the scancode holds, 0 none */
 static int mouse_pos = -1;                    /* key held by the left mouse button */
 static bool latched[256];
+
+/* A PC key went down/up (not a repeat): press/release the Corne key it maps to. The position
+ * is chosen at press time and remembered, so the release always matches the press. */
+static void pc_key(SDL_Scancode sc, bool down) {
+    if (down) {
+        int pos = pc_key_pos(sc);
+        if (pos >= 0 && pos < host_num_keys() && !sc_held_pos[sc]) {
+            sc_held_pos[sc] = (int8_t)(pos + 1);
+            host_logf(4, "ui: PC %s -> key %d (%s)", SDL_GetScancodeName(sc), pos,
+                      host_key_label((int)host_query(HALF_CENTRAL, SIM_Q_HIGHEST_LAYER), pos));
+            host_key_ref(pos, true);
+        }
+    } else if (sc_held_pos[sc]) {
+        host_key_ref(sc_held_pos[sc] - 1, false);
+        sc_held_pos[sc] = 0;
+    }
+}
+
+/* Script command `pckey <key> down|up`: the window's PC keyboard path, also in headless runs. */
+int ui_pc_key(const char *name, bool down) {
+    char buf[64];
+    snprintf(buf, sizeof buf, "%s", name);
+    for (char *c = buf; *c; c++) {
+        if (*c == '_') {
+            *c = ' ';
+        }
+    }
+    static const struct {
+        const char *alias, *sdl;
+    } aliases[] = {{"lalt", "Left Alt"},     {"lctrl", "Left Ctrl"}, {"lshift", "Left Shift"},
+                   {"lgui", "Left GUI"},     {"lwin", "Left GUI"},   {"ralt", "Right Alt"},
+                   {"rctrl", "Right Ctrl"},  {"rshift", "Right Shift"}, {"rgui", "Right GUI"}};
+    for (size_t i = 0; i < sizeof aliases / sizeof aliases[0]; i++) {
+        if (!SDL_strcasecmp(buf, aliases[i].alias)) {
+            snprintf(buf, sizeof buf, "%s", aliases[i].sdl);
+        }
+    }
+    SDL_Scancode sc = SDL_GetScancodeFromName(buf);
+    if (sc == SDL_SCANCODE_UNKNOWN || pc_key_pos(sc) < 0) {
+        return -1;
+    }
+    pc_key(sc, down);
+    return 0;
+}
 
 static void release_keyboard(void) {
     for (int sc = 0; sc < SDL_NUM_SCANCODES; sc++) {
@@ -922,7 +1010,9 @@ static const char *help_lines[] = {
     "  row 0: Tab/Esc/`  Q W E R T  |  Y U I O P  Backspace/[",
     "  row 1: CapsLock   A S D F G  |  H J K L ;  '",
     "  row 2: LShift     Z X C V B  |  N M , . /  RShift",
-    "  thumbs: LCtrl LAlt Space  |  Enter RAlt RCtrl/Menu",
+    "  thumbs: LCtrl LAlt/LWin Space  |  Enter RAlt RCtrl/Menu",
+    "  LShift LCtrl LAlt LWin: the active layer's &kp key of that modifier",
+    "  if it has one (PC Alt = keyboard Alt), else the position above",
     "",
     "MOUSE",
     "  left click key: press while held   right click key: latch / unlatch",
@@ -999,6 +1089,7 @@ static void handle_event(const SDL_Event *e) {
         break;
     case SDL_WINDOWEVENT:
         if (e->window.event == SDL_WINDOWEVENT_FOCUS_LOST) {
+            host_logf(4, "ui: window lost keyboard focus, releasing held keys");
             release_keyboard();
             release_mouse();
         } else if (e->window.event == SDL_WINDOWEVENT_CLOSE) {
@@ -1009,6 +1100,8 @@ static void handle_event(const SDL_Event *e) {
     case SDL_KEYUP: {
         bool down = e->type == SDL_KEYDOWN;
         SDL_Scancode sc = e->key.keysym.scancode;
+        host_logf(4, "ui: PC key %s %s%s", SDL_GetScancodeName(sc), down ? "down" : "up",
+                  e->key.repeat ? " (repeat)" : "");
         if (sc < 0 || sc >= SDL_NUM_SCANCODES) {
             break;
         }
@@ -1022,16 +1115,7 @@ static void handle_event(const SDL_Event *e) {
         if (e->key.repeat) {
             break;
         }
-        if (down) {
-            int pos = scancode_pos(sc);
-            if (pos >= 0 && pos < host_num_keys() && !sc_held_pos[sc]) {
-                sc_held_pos[sc] = (int8_t)(pos + 1);
-                host_key_ref(pos, true);
-            }
-        } else if (sc_held_pos[sc]) {
-            host_key_ref(sc_held_pos[sc] - 1, false);
-            sc_held_pos[sc] = 0;
-        }
+        pc_key(sc, down);
         break;
     }
     case SDL_MOUSEBUTTONDOWN: {

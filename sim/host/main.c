@@ -50,7 +50,7 @@ void host_log(const char *fmt, ...) {
     va_end(ap);
 }
 
-static void host_logf(int level, const char *fmt, ...) {
+void host_logf(int level, const char *fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
     vlog_line(level, 'H', fmt, ap);
