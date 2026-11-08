@@ -300,6 +300,7 @@ static const struct qdef qdefs[] = {
     {"layer", 0, SIM_Q_HIGHEST_LAYER, K_LAYER},
     {"layer_state", 0, SIM_Q_LAYER_STATE, K_NUM},
     {"wpm", 0, SIM_Q_WPM, K_NUM},
+    {"wpm_zmk", 0, SIM_Q_WPM_ZMK, K_NUM},
     {"mods", 0, SIM_Q_EXPLICIT_MODS, K_MODS},
     {"battery", 0, SIM_Q_BATTERY, K_NUM},
     {"battery.central", 0, SIM_Q_BATTERY, K_NUM},

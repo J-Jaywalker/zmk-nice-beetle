@@ -54,6 +54,8 @@ The central screen shows a smaller Beedly where the original nice!oled showed th
 
 When several apply, the first of Gui, Alt, Ctrl, Shift, Caps Lock wins (the old Luna priority), otherwise the WPM animation plays. Releasing the keys returns to the WPM animation. Thresholds and frame times are Kconfig options in `boards/shields/nice_oled/nice_epaper/Kconfig.defconfig` (`CONFIG_NICE_BEETLE_LUNA_WALK_WPM`, `..._SPRINT_WPM`, `..._IDLE_FRAME_MS`, `..._WALK_FRAME_MS`, `..._SPRINT_FRAME_MS`). The modifier and Caps Lock speeds still use `CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS_LUNA_ANIMATION_MS` and `CONFIG_NICE_OLED_WIDGET_HID_INDICATORS_LUNA_ANIMATION_MS`, which give the time for two frames.
 
+**What counts as typing (WPM).** The WPM number, the WPM graph and Beedly's Idle/Walk/Sprint use this repo's own counter (`widgets/wpm_counter.c`). It works like ZMK's: it counts key releases, treats 5 keys as one word, updates every second and restarts its count every 5 seconds. The difference is that only typing keys count: letters, digits, symbols and punctuation, Space, Tab, Enter, and the keypad's digits, operators and Enter. Modifiers (including a home-row mod once it is held), Backspace/Delete, Esc, arrows and navigation keys, F-keys, Caps/Num/Scroll Lock, media keys, and layer or Bluetooth keys do not count. A key pressed with a modifier, such as Ctrl+C or Shift+A, still counts. To go back to ZMK's counter, which counts every key, set `CONFIG_NICE_BEETLE_WPM_TYPING_ONLY=n` in your keymap's `.conf`.
+
 Edit the file in Aseprite. You can add frames to a tag or move tag ranges, but keep the seven tag names. Then run:
 
 | Command | What it does |

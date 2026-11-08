@@ -125,6 +125,19 @@ for whoever continues the work. Nothing has been committed.
   and lost focus after 0.36 s), so the window's SDL dispatch itself is verified only by reading
   ui.c; everything below it is exercised by `pckey`.
 
+## Typing-only WPM
+- `nice_epaper/widgets/wpm_counter.c/.h` (central, always compiled with the status screen): its
+  own ZMK event `nice_beetle_wpm_changed` + `nice_beetle_wpm_get_state()`. luna.c and screen.c
+  (number + graph) subscribe to it instead of `zmk_wpm_state_changed`.
+- `CONFIG_NICE_BEETLE_WPM_TYPING_ONLY=y` (default): ZMK's wpm.c algorithm copied verbatim, with a
+  filter on keyboard-page usages 0x04-0x28, 0x2B, 0x2C, 0x2D-0x38, 0x64, 0x54-0x63, 0x67, 0x85.
+  `=n`: listener on `zmk_wpm_state_changed` re-raising it as `nice_beetle_wpm_changed`.
+- `ZMK_WPM` is still selected (the fallback needs it, and other code may too). Its counter keeps
+  running but no widget listens to its event, so nothing is double-raised or conflicting;
+  the cost is one extra listener + 1 s timer.
+- Sim: `SIM_Q_WPM` (`expect wpm`, window, log) = our counter; new `SIM_Q_WPM_ZMK` / `wpm_zmk` =
+  ZMK's. `sim/examples/wpm.txt` (11 expects) in `make sim-test`.
+
 ## Not verified / open issues
 - Central Beedly on real hardware (flash): unverified, as everything else here.
 - Peripheral Beedly is invisible with CONFIG_NICE_VIEW_WIDGET_INVERTED=y (palette, see above).

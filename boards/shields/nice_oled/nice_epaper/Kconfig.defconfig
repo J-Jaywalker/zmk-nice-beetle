@@ -65,6 +65,18 @@ if !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 config NICE_VIEW_WIDGET_STATUS
     select ZMK_WPM
 
+# ZMK_WPM stays selected: the fallback below uses it, and so may other modules/configs. With the
+# typing-only counter its zmk_wpm_state_changed events are simply not used by these widgets.
+config NICE_BEETLE_WPM_TYPING_ONLY
+    bool "WPM (number, graph, Beedly) counts typing keys only"
+    default y
+    help
+      Count only letters, digits, symbols/punctuation, Space, Tab, Enter and keypad
+      digits/operators/Enter for the central screen's WPM; modifiers, Backspace/Delete, Esc,
+      arrows/navigation, F-keys, lock keys and media keys do not count. Same algorithm as ZMK's
+      counter otherwise (key releases, 5 keys = 1 word, 1 s update, 5 s window).
+      n = show ZMK's own WPM (every key release counts).
+
 # Central Beedly (replaces the Luna dog; widgets/beedly_slot.c). The animations are the tags of
 # sprite_assets/ase/beedly_left.aseprite. Durations are PER FRAME, so a tag with more frames plays
 # longer instead of faster.

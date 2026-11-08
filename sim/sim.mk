@@ -112,7 +112,8 @@ sim-watch: sim-build
 	  -- $(SIM_BUILD)/bin/sim.exe --watch $(SIM_PANEL_ARG) $(SIM_ARGS)
 
 # headless smoke test: scripted input, expectations, PNG + GIF output
-#   then the central Beedly scenario (sim/examples/beedly.txt): every frame is dumped and
+#   then the central Beedly scenario (sim/examples/beedly.txt) and the typing-only WPM
+#   counter (sim/examples/wpm.txt): every frame is dumped and
 #   sim/tools/check_beedly.py compares the Beedly slot with the expected Aseprite tag (the
 #   frame check needs the pixel-exact ideal panel, so it always runs with --panel ideal)
 SIM_BEEDLY_OUT := $(SIM_BUILD)/out/beedly
@@ -122,6 +123,7 @@ sim-test: sim-build
 	@rm -rf $(SIM_BEEDLY_OUT)/frames && mkdir -p $(SIM_BEEDLY_OUT)/frames
 	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/beedly.txt --panel ideal --frames $(SIM_BEEDLY_OUT)/frames --png $(SIM_BEEDLY_OUT)/final.png --gif $(SIM_BEEDLY_OUT)/beedly.gif
 	$(SIM_PY) $(SIM_DIR)/tools/check_beedly.py --frames $(SIM_BEEDLY_OUT)/frames --script $(SIM_DIR)/examples/beedly.txt
+	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/wpm.txt --png $(SIM_BUILD)/out/wpm.png
 
 # parallel compile by default (NUMBER_OF_PROCESSORS is set by Windows); an
 # explicit make -jN wins

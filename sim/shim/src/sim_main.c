@@ -273,6 +273,17 @@ static int64_t api_query(int what) {
     case SIM_Q_LAYER_STATE:
         return zmk_keymap_layer_state();
 #if IS_ENABLED(CONFIG_ZMK_WPM)
+    case SIM_Q_WPM_ZMK:
+        return zmk_wpm_get_state();
+#endif
+#if defined(CONFIG_NICE_BEETLE_LUNA_WALK_WPM) && IS_ENABLED(CONFIG_NICE_VIEW_WIDGET_STATUS) && IS_ENABLED(CONFIG_ZMK_DISPLAY)
+    /* the WPM the central screen shows (nice_epaper widgets/wpm_counter.c, compiled with the
+     * central status screen; its Kconfig block defines NICE_BEETLE_LUNA_WALK_WPM) */
+    case SIM_Q_WPM: {
+        extern uint8_t nice_beetle_wpm_get_state(void);
+        return nice_beetle_wpm_get_state();
+    }
+#elif IS_ENABLED(CONFIG_ZMK_WPM)
     case SIM_Q_WPM:
         return zmk_wpm_get_state();
 #endif

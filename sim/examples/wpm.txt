@@ -1,0 +1,129 @@
+# Typing-only WPM (CONFIG_NICE_BEETLE_WPM_TYPING_ONLY=y, widgets/wpm_counter.c) - make sim-test
+#
+# `expect wpm` = the WPM the central screen shows (our counter), `expect wpm_zmk` = ZMK's own
+# counter (every key release counts), for comparison.
+# Both use ZMK's algorithm: key releases are counted, recomputed every second, and the counters
+# restart every 5 s (updates at 1..5 s, 6..10 s, ...; the count is reset after the 5 s, 10 s,
+# 15 s ... update). So N counted releases between t = 10 s and 15 s give, at the 15 s update,
+#   WPM = N / 5 chars per word / (5 s / 60) = N * 2.4      (25 releases -> 60 WPM)
+#
+# alphred_kb ALPH-WIN positions: 1..10 = q..p, 12 Tab, 35 Enter, 39 &spund (tap = Space),
+# 0 &gresc (Esc), 11 &bckdl (Backspace), 24 LSHIFT, 36 LALT, 37 LGUI, 38 LCTRL,
+# 13 &hm LEFT_GUI A, 14 &hm LEFT_ALT S, 40 &mo ARROWS (ARROWS: 8 UP, 19 LEFT, 20 DOWN, 21 RIGHT,
+# 6 F12, 10 F5).
+
+at 900 expect wpm == 0
+
+# ---- 10..15 s: 25 letters -> 60 WPM (ZMK agrees)
+at 10100 type qwertyuiopqwertyuiopqwert
+at 15200 expect wpm == 60
+expect wpm_zmk == 60
+
+# ---- 20..25 s: 25 releases of keys that must NOT count -> 0 (ZMK would show 60)
+at 20100 tap 11
+tap 11
+tap 11
+tap 11
+tap 0
+tap 0
+tap 0
+tap 24
+tap 24
+tap 38
+tap 38
+tap 36
+tap 36
+tap 37
+tap 37
+# arrows and F-keys on the ARROWS layer (the layer key itself sends no keycode)
+press 40
+wait 100
+tap 8
+tap 19
+tap 20
+tap 21
+tap 6
+tap 10
+tap 8
+tap 19
+release 40
+wait 100
+tap 24
+tap 38
+at 25200 expect wpm == 0
+expect wpm_zmk == 60
+
+# ---- 25..30 s: modifiers HELD (long presses, also home-row mods held past the tapping term)
+at 25300 press 24
+at 26000 press 38
+at 26500 press 14
+at 27500 release 14
+at 27600 press 13
+at 28600 release 13
+at 29000 release 38
+at 29100 release 24
+at 30200 expect wpm == 0
+expect wpm_zmk > 0
+
+# ---- 30..35 s: 10 letters + 5 Space + 5 Tab + 5 Enter = 25 counted -> 60, mixed with 17
+# non-counting releases: Backspace, Esc, modifiers (ZMK counts all 42 -> 100). Shift+letter counts its letter.
+at 30100 type qwert
+tap 39
+tap 12
+tap 35
+tap 11
+tap 0
+tap 39
+tap 12
+tap 35
+tap 24
+tap 38
+press 24
+wait 60
+tap 1
+tap 2
+release 24
+wait 60
+tap 39
+tap 12
+tap 35
+tap 37
+tap 36
+type yui
+tap 39
+tap 12
+tap 35
+tap 39
+tap 12
+tap 35
+tap 11
+tap 11
+tap 0
+tap 24
+tap 38
+tap 36
+tap 37
+tap 11
+tap 0
+tap 11
+at 35200 expect wpm == 60
+expect wpm_zmk == 100
+
+# ---- 35..40 s: home-row mods tapped = letters (count), the same keys held = modifiers (don't)
+at 35100 tap 14
+tap 13
+tap 14
+tap 13
+tap 14
+press 14
+wait 400
+release 14
+wait 100
+press 13
+wait 400
+release 13
+at 40200 expect wpm == 12
+
+# ---- nothing typed: back to 0
+at 45200 expect wpm == 0
+at 45300 end

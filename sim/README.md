@@ -158,6 +158,17 @@ once had a Ctrl frame copied into the Alt tag, so held Alt flipped between
 `--log FILE` records, at debug level, every PC key and the Corne key it
 pressed (`ui: PC Left Alt -> key 36 (LALT)`), window focus loss, and every
 Beedly animation change with the modifier byte (`beedly: mods 0x04 ...`).
+The WPM shown (number, graph, Idle/Walk/Sprint) comes from
+`widgets/wpm_counter.c`. It uses ZMK's algorithm (key releases, 5 keys per
+word, 1 s update, 5 s window) but only counts typing keys: HID keyboard page
+letters/digits/symbols, Space, Tab, Enter, and keypad digits/operators/Enter.
+Modifiers, Backspace/Delete, Esc, navigation, F-keys, lock keys and consumer
+keys are not counted. `CONFIG_NICE_BEETLE_WPM_TYPING_ONLY=n` passes ZMK's
+counter through instead. `sim/examples/wpm.txt` (part of `make sim-test`)
+checks that 25 letters, or a mix of letters, Space, Tab and Enter, give
+60 WPM while Backspace, Esc, modifiers (tapped, held, home-row mods held),
+arrows, F-keys and layer keys give 0, comparing against `wpm_zmk`.
+
 LVGL advances animations from its ~33 ms timer, so a single 100 ms frame can
 be on screen for 40..160 ms (as with the old Luna); the average is exact.
 
@@ -262,7 +273,9 @@ wait <time>               cursor += time   (alias: sleep)
 | `end` | stop the run here (`quit`, `exit`) |
 | `expect <query> <op> <value>` | check state; ops `== != < <= > >=` (`typed`: `== != contains`) |
 
-`expect` queries: `layer` (number or layer name), `layer_state`, `wpm`,
+`expect` queries: `layer` (number or layer name), `layer_state`, `wpm` (the
+WPM the central screen shows: typing keys only, see below), `wpm_zmk` (ZMK's
+own counter, every key),
 `mods` (number or `lgui+lshift`...), `battery`, `usb`, `split`, `writes`,
 `heap`, `heap_peak` (each optionally `.central`/`.peripheral`; default
 central), `profile`, `connected`, `bonded`, `transport` (`usb`/`ble`/`none`),
@@ -417,6 +430,6 @@ shim/                  Zephyr/ZMK replacements compiled into each MCU DLL
 kconfig/               Kconfig stubs for things the real tree gets from the SoC
 tools/                 fetch_deps.py, gen_config.py, setup_toolchain.py,
                        cmake_sources.py, watch.py (make sim-watch)
-examples/              smoke.txt, beedly.txt (make sim-test), layers.json
+examples/              smoke.txt, beedly.txt, wpm.txt (make sim-test), layers.json
 tools/check_beedly.py  frame checker for beedly.txt
 ```

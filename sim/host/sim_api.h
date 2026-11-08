@@ -38,6 +38,7 @@ enum sim_query {
     SIM_Q_LVGL_HEAP_PEAK,
     SIM_Q_ACTIVITY_STATE,
     SIM_Q_REBOOT_REQUESTED, /* >= 0: firmware called sys_reboot(type); reload the DLL */
+    SIM_Q_WPM_ZMK,          /* ZMK's own counter (SIM_Q_WPM = what the screen shows) */
 };
 
 struct sim_host_callbacks {

@@ -25,6 +25,8 @@ if(CONFIG_ZMK_DISPLAY AND CONFIG_NICE_VIEW_WIDGET_STATUS)
   # slot shared by luna.c (WPM), modifiers.c and hid_indicators.c.
   zephyr_library_sources(assets/beedly_luna_frames.c)
   zephyr_library_sources(widgets/beedly_slot.c)
+  # WPM shown on the central screen (typing keys only unless NICE_BEETLE_WPM_TYPING_ONLY=n)
+  zephyr_library_sources(widgets/wpm_counter.c)
   target_sources_ifdef(CONFIG_NICE_OLED_WIDGET_HID_INDICATORS app PRIVATE widgets/hid_indicators.c)
   target_sources_ifdef(CONFIG_NICE_OLED_WIDGET_MODIFIERS_INDICATORS app PRIVATE widgets/modifiers.c)
   target_sources_ifdef(CONFIG_NICE_OLED_WIDGET_WPM app PRIVATE widgets/luna.c)
