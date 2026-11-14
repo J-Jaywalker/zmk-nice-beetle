@@ -30,6 +30,8 @@ A living and ever expanding list of improvements and ideas to improve Beedly.
   - [X] Simulator scenario (`make sim-test-pet`) - written, not yet run
   - [ ] Verify on hardware (menu, split delivery, saves across power cycles, deep-sleep save)
   - [ ] Redraw the art's HUD: the third bar shows XP under a "Zz" icon (there is no sleep stat)
+  - [ ] SAVE closes the menu even if the send to the right half failed or was dropped (known issue, `behavior_beedly.c`). A BLE write-without-response is never acknowledged, so closing only on a failed send would not catch every case; the right half still saves on its own timer, on idle and before sleep
+  - [ ] Combos without a `layers` list also fire on the BEEDLY layer (alphred_kb keymap); scope them to the typing layers
   - [ ] Track typing activity to simulate "feeding"
   - [ ] Idle timer to trigger "boredom" or "sleep"
   - [ ] Basic mood states (happy, hungry, tired, annoyed)

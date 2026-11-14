@@ -49,7 +49,8 @@ static int send_to_peripheral(const struct zmk_behavior_binding *binding,
     // no transport: -ENODEV / -ENOTCONN ...) are logged and otherwise ignored.
     int err = zmk_split_central_invoke_behavior(BEEDLY_PERIPHERAL_SOURCE, &remote, event, true);
     if (err < 0) {
-        LOG_WRN("beedly: sending action %d to the right half failed (%d)", action, err);
+        LOG_WRN("beedly: sending action %u to the right half failed (%d)", (unsigned int)action,
+                err);
     }
     return err;
 }
@@ -74,11 +75,17 @@ static int on_beedly_binding_pressed(struct zmk_behavior_binding *binding,
         }
         send_to_peripheral(binding, event, action);
         if (action == BEEDLY_SAVE) {
+            // KNOWN ISSUE (TODO.md): the menu closes even if the send failed or was dropped, so
+            // with the right half out of range SAVE silently does nothing. The right half still
+            // saves by itself (30 s after an action, on idle, before sleep). A failed send could
+            // keep the menu open (send_to_peripheral() < 0), but a queued BLE write-without-
+            // response is never acknowledged, so that would only cover part of the cases.
             beedly_menu_close(); /* PET / FEED keep the menu open */
         }
         return ZMK_BEHAVIOR_OPAQUE;
     default:
-        LOG_WRN("beedly: parameter %d is not a central (keymap) parameter", binding->param1);
+        LOG_WRN("beedly: parameter %u is not a central (keymap) parameter",
+                (unsigned int)binding->param1);
         return -ENOTSUP;
     }
 }
@@ -95,7 +102,8 @@ static int on_beedly_binding_pressed(struct zmk_behavior_binding *binding,
     case BEEDLY_SAVE:
         return beedly_pet_request(binding->param1) < 0 ? -EIO : ZMK_BEHAVIOR_OPAQUE;
     default:
-        LOG_WRN("beedly: parameter %d is not a remote (right half) action", binding->param1);
+        LOG_WRN("beedly: parameter %u is not a remote (right half) action",
+                (unsigned int)binding->param1);
         return -ENOTSUP;
     }
 }

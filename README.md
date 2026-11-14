@@ -80,6 +80,8 @@ Beedly can be petted and fed. The **right half owns the pet**: a hearts bar, a f
 | `&beedly BEEDLY_UP` / `BEEDLY_DOWN` | BEEDLY layer | moves the cursor; stops at PET / SAVE (no wrap) |
 | `&beedly BEEDLY_ENTER` | BEEDLY layer | PET or FEED: sent to the right half, the menu stays open. SAVE: sent, and the BEEDLY layer is turned off, so the layer below it (ALPH-WIN / ALPH-MAC) is back |
 
+**Known issue:** SAVE closes the menu even if sending the action to the right half failed or was dropped (the link is down or out of range). A queued BLE write is never acknowledged, so the left half cannot tell. The right half still saves by itself (30 s after a change, on idle, before sleep), so nothing is lost.
+
 `BEEDLY_PET` (16), `BEEDLY_FEED` (17) and `BEEDLY_SAVE` (18) are what the left half sends; never bind them. The menu is shown whenever the BEEDLY layer is active, so any other way off the layer (for example a `&to` key on it) closes it too.
 
 **Screens.** Left: the menu covers the WPM graph and the WPM number (a framed box, the cursor row inverted with `>`); battery, signal, the small Beedly, the profile dots and the layer name ("BEEDLY", the menu's title) stay. Right: the Beedly art already has a "BEEDLY : LVL 5" pill and three bars. The level digit and the three bars are now live: hearts (under the heart icon), food (under the food icon) and XP to the next level (under the "Zz" icon). PET floats small hearts up beside Beedly; either action flashes the bar that changed between its old and new value, one step per second, four steps. Presses during an animation are ignored. A full bar makes the action do nothing at all: no XP, no animation, nothing to save, so mashing cannot level Beedly up.

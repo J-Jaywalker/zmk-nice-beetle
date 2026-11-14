@@ -8,6 +8,7 @@
  */
 
 #include <ctype.h>
+#include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/sys/atomic.h>
 #include <zephyr/logging/log.h>
