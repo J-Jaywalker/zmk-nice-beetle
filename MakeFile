@@ -35,5 +35,5 @@ beedly_left:
 	$(PYTHON) ./sprite_assets/generate_beedly_left.py $(BEEDLY_ARGS)
 
 # PC simulator of the status screens (see sim/README.md):
-#   make sim | sim-build | sim-run | sim-test | sim-deps | sim-clean | sim-distclean
+#   make sim | sim-build | sim-run | sim-test | sim-test-pet | sim-deps | sim-clean | sim-distclean
 include sim/sim.mk

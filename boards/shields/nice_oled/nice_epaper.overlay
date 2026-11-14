@@ -21,4 +21,17 @@
     chosen {
         zephyr,display = &nice_view;
     };
+
+    /*
+     * Beedly pet (see include/dt-bindings/zmk/beedly.h). Declared here, in the shield overlay
+     * both halves build, because the central sends BEEDLY_PET/FEED/SAVE to the peripheral by
+     * this node's device name ("beedly") and the peripheral looks it up by that name. A keymap's
+     * own `behaviors` node merges with this one; it only must not reuse the `beedly` label.
+     */
+    behaviors {
+        beedly: beedly {
+            compatible = "zmk,behavior-beedly";
+            #binding-cells = <1>;
+        };
+    };
 };

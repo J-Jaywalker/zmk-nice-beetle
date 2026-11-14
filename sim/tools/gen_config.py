@@ -136,7 +136,10 @@ def gen_dts(role, cfg, paths, out, cc):
             os.path.join(zmk, "app/module/include"), os.path.join(zmk, "app/module/dts"),
             os.path.join(zephyr, "include"), os.path.join(zephyr, "dts/common"),
             os.path.join(zephyr, "dts"), os.path.dirname(paths["keymap"]),
-            os.path.join(REPO, "boards/shields/nice_oled")]
+            os.path.join(REPO, "boards/shields/nice_oled"),
+            # this repo as a Zephyr module with `dts_root: .` (zephyr/module.yml): Zephyr adds
+            # <root>/include and <root>/dts to the DTS include path (dt-bindings/zmk/beedly.h)
+            os.path.join(REPO, "include"), os.path.join(REPO, "dts")]
     cmd = [cc, "-E", "-x", "assembler-with-cpp", "-nostdinc", "-undef", "-D__DTS__", "-P"]
     if cfg["snippet"]:
         cmd.append("-DZMK_BEHAVIORS_KEEP_ALL")  # studio-rpc-usb-uart snippet (build.yaml, left half)
@@ -155,8 +158,9 @@ def gen_dts(role, cfg, paths, out, cc):
 
     gdir = os.path.join(d, "include", "generated", "zephyr")  # Zephyr 4.x: <zephyr/devicetree_generated.h>
     os.makedirs(gdir, exist_ok=True)
+    # ... and <dts_root>/dts/bindings to the binding directories (zmk,behavior-beedly)
     bindings = [os.path.join(zmk, "app/dts/bindings"), os.path.join(zmk, "app/module/dts/bindings"),
-                os.path.join(zephyr, "dts/bindings")]
+                os.path.join(zephyr, "dts/bindings"), os.path.join(REPO, "dts/bindings")]
     # Zephyr 4.1 splits devicetree parsing (gen_edt.py -> edt.pickle) from header
     # generation (gen_defines.py --edt-pickle)
     r = subprocess.run([sys.executable, os.path.join(zephyr, "scripts/dts/gen_edt.py"),
@@ -378,6 +382,8 @@ def short_label(binding):
         return f"{args[1]}/{args[0]}"
     if beh == "&bt" and args:
         return " ".join(args).replace("BT_", "")
+    if beh == "&beedly" and args:
+        return "pet " + args[0].replace("BEEDLY_", "").lower()
     if beh in ("&none",):
         return ""
     if beh in ("&trans",):
@@ -641,6 +647,11 @@ def input_signature(paths, a):
     cfg_ext = (".overlay", ".conf", ".dtsi", ".dts", ".yml", ".yaml", ".keymap", ".txt")
     for d, _, fs in os.walk(os.path.join(REPO, "boards")):
         files += [os.path.join(d, f) for f in fs if f.startswith("Kconfig") or f.endswith(cfg_ext)]
+    # module dts_root: bindings and the dt-bindings headers the keymap includes
+    for sub in ("dts", "include"):
+        for d, _, fs in os.walk(os.path.join(REPO, sub)):
+            files += [os.path.join(d, f) for f in fs]
+    files.append(os.path.join(REPO, "zephyr", "module.yml"))
     h = hashlib.sha1(repr((a.keymap, a.conf, a.cc, paths["keymap"], paths["conf"])).encode())
     for f in sorted(files):
         try:

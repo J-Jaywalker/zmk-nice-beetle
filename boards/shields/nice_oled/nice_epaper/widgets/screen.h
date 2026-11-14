@@ -13,3 +13,5 @@ struct zmk_widget_screen {
 
 int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent);
 lv_obj_t *zmk_widget_screen_obj(struct zmk_widget_screen *widget);
+/* Display thread only: redraw every status screen from its current state (Beedly pet menu). */
+void zmk_widget_screen_refresh(void);

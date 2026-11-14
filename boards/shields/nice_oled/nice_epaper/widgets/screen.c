@@ -54,6 +54,14 @@ static struct zmk_widget_hid_indicators hid_indicators_widget;
 #endif
 
 /**
+ * Beedly pet menu (drawn over the WPM graph while its layer is active, see beedly_menu.h)
+ **/
+
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+#include "beedly_menu.h"
+#endif
+
+/**
  * Draw canvas
  **/
 
@@ -70,6 +78,13 @@ static void draw_canvas(lv_obj_t *widget, const struct status_state *state) {
     // TODO: charging animation END
     draw_profile_status(canvas, state);
     draw_layer_status(canvas, state);
+
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+    // Last, over the WPM graph: the menu is an overlay on the normal screen
+    if (state->beedly_menu_open) {
+        draw_beedly_menu(canvas, beedly_menu_cursor());
+    }
+#endif
 
     // Rotate for horizontal display
     rotate_canvas(canvas);
@@ -123,6 +138,7 @@ ZMK_SUBSCRIPTION(widget_battery_status, zmk_usb_conn_state_changed);
 static void set_layer_status(struct zmk_widget_screen *widget, struct layer_status_state state) {
     widget->state.layer_index = state.index;
     widget->state.layer_label = state.label;
+    widget->state.beedly_menu_open = state.beedly_menu_open;
 
     draw_canvas(widget->obj, &widget->state);
 }
@@ -135,7 +151,12 @@ static void layer_status_update_cb(struct layer_status_state state) {
 static struct layer_status_state layer_status_get_state(const zmk_event_t *eh) {
     zmk_keymap_layer_index_t index = zmk_keymap_highest_layer_active();
     return (struct layer_status_state){
-        .index = index, .label = zmk_keymap_layer_name(zmk_keymap_layer_index_to_id(index))};
+        .index = index,
+        .label = zmk_keymap_layer_name(zmk_keymap_layer_index_to_id(index)),
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+        .beedly_menu_open = beedly_menu_is_open(),
+#endif
+    };
 }
 
 ZMK_DISPLAY_WIDGET_LISTENER(widget_layer_status, struct layer_status_state, layer_status_update_cb,
@@ -242,3 +263,8 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
 }
 
 lv_obj_t *zmk_widget_screen_obj(struct zmk_widget_screen *widget) { return widget->obj; }
+
+void zmk_widget_screen_refresh(void) {
+    struct zmk_widget_screen *widget;
+    SYS_SLIST_FOR_EACH_CONTAINER(&widgets, widget, node) { draw_canvas(widget->obj, &widget->state); }
+}

@@ -15,6 +15,7 @@ underneath are replaced (see [Accuracy](#accuracy-report)).
 make sim                    # fetch, generate, build, open the window
 make sim-watch              # window + rebuild/hot-reload on every save (animation work)
 make sim-test               # headless scripted tests (smoke + central Beedly), PNG + GIF
+make sim-test-pet KEYMAP=.. # Beedly pet scenario (needs a keymap with the BEEDLY layer)
 make sim-deps               # check/install the MSYS2 toolchain (pacman)
 make sim-clean              # remove sim/build (keeps the .sim_cache downloads)
 ```
@@ -169,6 +170,50 @@ checks that 25 letters, or a mix of letters, Space, Tab and Enter, give
 60 WPM while Backspace, Esc, modifiers (tapped, held, home-row mods held),
 arrows, F-keys and layer keys give 0, comparing against `wpm_zmk`.
 
+### Beedly pet
+
+The `&beedly` behaviour, the left-screen menu and the right half's pet (see
+the main README) are compiled like the rest: `behaviors/behavior_beedly.c`
+into both DLLs, `widgets/beedly_menu.c` into the central, `widgets/beedly_pet.c`
+into the peripheral. The node comes from `nice_epaper.overlay`; the sim adds
+this repo's `include/` and `dts/` to the devicetree include path and
+`dts/bindings` to the binding directories, as Zephyr does for a module with
+`dts_root: .` (`zephyr/module.yml`), and `include/` to the compiler's path.
+The central's `zmk_split_central_invoke_behavior()` goes through the sim's
+split relay to the peripheral's real command handler.
+
+The menu needs a keymap with a `BEEDLY` layer and the `&beedly` bindings.
+`make sim` clones alphred_kb's default branch, which does not have them yet;
+point the sim at a local checkout instead (the `tamagotchi_behaviour` branch):
+
+```
+make sim KEYMAP=../alphred_kb/config/corne.keymap [CONF=../alphred_kb/config/corne.conf]
+make sim-test-pet KEYMAP=../alphred_kb/config/corne.keymap
+```
+
+(`WEST=../alphred_kb/config/west.yml` also takes the ZMK revision from that
+checkout; the sim always compiles this repo's working tree, whatever
+west.yml names for zmk-nice-beetle.) In the window: hold the BT key (right
+thumb, outer) and press P to open the menu, I / K move the cursor, the key
+right of `/` (Enter on the base layer) confirms.
+
+`sim/examples/pet.txt` (`make sim-test-pet`) opens the menu from ALPH-MAC,
+checks the cursor clamps at both ends, FEEDs until the food bar is full
+(animation running, a press during it ignored, XP), checks the one-shot save
+after 30 s, that FEED on a full bar changes nothing (not even the unsaved
+flag), PETs to full and level 2, SAVEs (written at once, menu closed, back on
+ALPH-MAC, the pending timer save replaced) and that `&to` on the BEEDLY layer
+closes the menu; PNGs go to `sim/build/out/pet/`. **It has not been run
+yet** (written without a Windows machine): treat a first failure as a
+possibly wrong expectation as much as a bug. `expect` queries:
+`pet.menu`, `pet.cursor` (central), `pet.hearts`, `pet.food`, `pet.xp`,
+`pet.level`, `pet.dirty`, `pet.anim`, `pet.saves` (peripheral; `pet.saves`
+counts `settings_save_one("beedly/...")` calls in the sim's settings store).
+Not covered: settings are not persisted across sim reboots (so loading a
+record is not exercised), deep sleep (not active in the sim), and the
+split-link-down path (all menu keys are on the right half, so with the link
+down they never reach the central).
+
 LVGL advances animations from its ~33 ms timer, so a single 100 ms frame can
 be on screen for 40..160 ms (as with the old Luna); the average is exact.
 
@@ -280,7 +325,8 @@ own counter, every key),
 `heap`, `heap_peak` (each optionally `.central`/`.peripheral`; default
 central), `profile`, `connected`, `bonded`, `transport` (`usb`/`ble`/`none`),
 `leds` (what the firmware has received: `caps+num`...), `activity`
-(`active`/`idle`/`sleep`), `typed` (text received by the computer). Results
+(`active`/`idle`/`sleep`), `typed` (text received by the computer), and the
+Beedly pet's `pet.*` (see [Beedly pet](#beedly-pet)). Results
 are printed as `PASS`/`FAIL` with the script line. Unknown commands, queries
 or values are reported (file:line) before the run starts.
 
@@ -430,6 +476,7 @@ shim/                  Zephyr/ZMK replacements compiled into each MCU DLL
 kconfig/               Kconfig stubs for things the real tree gets from the SoC
 tools/                 fetch_deps.py, gen_config.py, setup_toolchain.py,
                        cmake_sources.py, watch.py (make sim-watch)
-examples/              smoke.txt, beedly.txt, wpm.txt (make sim-test), layers.json
+examples/              smoke.txt, beedly.txt, wpm.txt (make sim-test), layers.json,
+                       pet.txt (make sim-test-pet)
 tools/check_beedly.py  frame checker for beedly.txt
 ```

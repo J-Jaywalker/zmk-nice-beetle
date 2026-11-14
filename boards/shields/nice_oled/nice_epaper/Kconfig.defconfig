@@ -111,4 +111,77 @@ config NICE_BEETLE_LUNA_CAPSLOCK_FRAME_MS
 
 endif # !ZMK_SPLIT || ZMK_SPLIT_ROLE_CENTRAL
 
+# Beedly pet (Tamagotchi). The `&beedly` behaviour (nice_epaper.overlay, both halves) opens a
+# PET / FEED / SAVE menu on the central (left) screen; the chosen action is sent to the
+# peripheral (right) half, which owns the pet: hearts, food, XP and level, drawn over the right
+# screen's Beedly art and saved in its settings (NVS). Nothing runs while typing: no timers,
+# no polling; decay is computed from uptime only when the right screen is redrawn or saved.
+
+config NICE_BEETLE_PET
+    bool "Beedly pet: menu on the left screen, pet stats on the right screen"
+    default y
+    depends on ZMK_SPLIT && DT_HAS_ZMK_BEHAVIOR_BEEDLY_ENABLED
+    help
+      n = no menu, no pet stats and no `beedly/pet` settings record; the right screen shows the
+      Beedly art unchanged and `&beedly` keys do nothing.
+
+if NICE_BEETLE_PET
+
+config NICE_BEETLE_PET_LAYER_NAME
+    string "Keymap layer the menu runs on (display-name, case-insensitive)"
+    default "BEEDLY"
+    help
+      BEEDLY_OPEN activates this layer; the menu is shown while it is active and BEEDLY_ENTER on
+      SAVE deactivates it again. Matched against the layer's display-name (or label).
+
+config NICE_BEETLE_PET_HEARTS_STEP
+    int "Hearts gained per PET (bar is 0..100)"
+    range 1 100
+    default 10
+
+config NICE_BEETLE_PET_FOOD_STEP
+    int "Food gained per FEED (bar is 0..100)"
+    range 1 100
+    default 10
+
+config NICE_BEETLE_PET_HEARTS_DECAY_MINUTES
+    int "Minutes of uptime per hearts point lost (0 = no decay)"
+    range 0 100000
+    default 30
+
+config NICE_BEETLE_PET_FOOD_DECAY_MINUTES
+    int "Minutes of uptime per food point lost (0 = no decay)"
+    range 0 100000
+    default 15
+
+config NICE_BEETLE_PET_XP_PER_ACTION
+    int "XP gained per effective PET or FEED"
+    range 1 1000
+    default 1
+
+config NICE_BEETLE_PET_XP_PER_LEVEL
+    int "XP needed for the next level"
+    range 1 1000
+    default 10
+
+config NICE_BEETLE_PET_MAX_LEVEL
+    int "Highest level (shown as a number, 1 or 2 digits)"
+    range 1 99
+    default 9
+
+config NICE_BEETLE_PET_SAVE_DELAY_SECONDS
+    int "Seconds after an effective PET/FEED before unsaved stats are written"
+    range 1 3600
+    default 30
+    help
+      One-shot: armed by the first effective action while nothing is pending, not extended by
+      later ones. SAVE in the menu, going idle and going to sleep also write unsaved stats.
+
+config NICE_BEETLE_PET_ANIM_STEP_MS
+    int "PET/FEED animation step (hearts / bar flash), milliseconds"
+    range 100 5000
+    default 1000
+
+endif # NICE_BEETLE_PET
+
 endif # SHIELD_NICE_EPAPER

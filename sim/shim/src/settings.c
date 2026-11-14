@@ -9,6 +9,9 @@
 
 SIM_SECTION_MARKERS(struct settings_handler_static, settings_handler_static);
 
+/* settings_save_one() calls for "beedly/..." keys (Beedly pet, `expect pet.saves`) */
+uint32_t sim_settings_beedly_saves;
+
 #define MAX_ITEMS 64
 static struct {
     char key[64];
@@ -20,6 +23,9 @@ static struct {
 int settings_subsys_init(void) { return 0; }
 
 int settings_save_one(const char *name, const void *value, size_t val_len) {
+    if (strncmp(name, "beedly/", 7) == 0) {
+        sim_settings_beedly_saves++;
+    }
     for (int i = 0; i < MAX_ITEMS; i++) {
         if (!store[i].used || strcmp(store[i].key, name) == 0) {
             snprintf(store[i].key, sizeof(store[i].key), "%s", name);

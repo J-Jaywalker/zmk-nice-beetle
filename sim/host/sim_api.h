@@ -39,6 +39,16 @@ enum sim_query {
     SIM_Q_ACTIVITY_STATE,
     SIM_Q_REBOOT_REQUESTED, /* >= 0: firmware called sys_reboot(type); reload the DLL */
     SIM_Q_WPM_ZMK,          /* ZMK's own counter (SIM_Q_WPM = what the screen shows) */
+    /* Beedly pet (CONFIG_NICE_BEETLE_PET; -1 when not built into that half) */
+    SIM_Q_PET_MENU_OPEN,   /* central: the menu layer is active */
+    SIM_Q_PET_MENU_CURSOR, /* central: 0 PET, 1 FEED, 2 SAVE */
+    SIM_Q_PET_HEARTS,      /* peripheral, 0..100, decay included */
+    SIM_Q_PET_FOOD,        /* peripheral, 0..100, decay included */
+    SIM_Q_PET_XP,          /* peripheral */
+    SIM_Q_PET_LEVEL,       /* peripheral */
+    SIM_Q_PET_DIRTY,       /* peripheral: changed since the last save */
+    SIM_Q_PET_ANIM,        /* peripheral: PET/FEED animation running */
+    SIM_Q_PET_SAVES,       /* either half: settings_save_one() calls for "beedly/..." keys */
 };
 
 struct sim_host_callbacks {

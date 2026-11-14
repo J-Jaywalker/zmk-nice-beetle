@@ -18,6 +18,10 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include "output.h"
 #include "screen_peripheral.h"
 
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+#include "beedly_pet.h"
+#endif
+
 static sys_slist_t widgets = SYS_SLIST_STATIC_INIT(&widgets);
 
 /**
@@ -34,6 +38,12 @@ static void draw_canvas(lv_obj_t *widget, const struct status_state *state) {
 
     // Rotate for horizontal display
     rotate_canvas(canvas);
+
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+    // Pet overlays (own objects over the art): refreshed with every redraw so the lazily
+    // computed hunger / happiness decay shows up without a timer of its own
+    beedly_pet_render();
+#endif
 }
 
 /**
@@ -114,6 +124,10 @@ int zmk_widget_screen_init(struct zmk_widget_screen *widget, lv_obj_t *parent) {
     init_canvas(canvas, widget->cbuf);
 
     draw_animation(canvas, widget);
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET)
+    // after the art, so the live level / bars / hearts are drawn on top of its mock HUD
+    beedly_pet_init(widget->obj);
+#endif
 
     sys_slist_append(&widgets, &widget->node);
     widget_battery_status_init();

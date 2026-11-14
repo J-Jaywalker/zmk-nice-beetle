@@ -33,6 +33,14 @@
 
 #include "sim_internal.h"
 
+/* Beedly pet sources are built (nice_epaper/CMakeLists.txt) */
+#if IS_ENABLED(CONFIG_NICE_BEETLE_PET) && IS_ENABLED(CONFIG_NICE_EPAPER_ON) &&                     \
+    IS_ENABLED(CONFIG_ZMK_DISPLAY) && IS_ENABLED(CONFIG_NICE_VIEW_WIDGET_STATUS)
+#define SIM_HAS_PET 1
+#else
+#define SIM_HAS_PET 0
+#endif
+
 /* ----------------------------------------------------- section markers */
 
 SIM_SECTION_MARKERS(struct device, device);
@@ -309,6 +317,47 @@ static int64_t api_query(int what) {
         extern int sim_reboot_requested;
         return sim_reboot_requested;
     }
+    case SIM_Q_PET_SAVES: {
+        extern uint32_t sim_settings_beedly_saves;
+        return sim_settings_beedly_saves;
+    }
+#if SIM_HAS_PET && SIM_IS_CENTRAL
+    /* widgets/beedly_menu.h */
+    case SIM_Q_PET_MENU_OPEN: {
+        extern bool beedly_menu_is_open(void);
+        return beedly_menu_is_open();
+    }
+    case SIM_Q_PET_MENU_CURSOR: {
+        extern uint8_t beedly_menu_cursor(void);
+        return beedly_menu_cursor();
+    }
+#elif SIM_HAS_PET
+    /* widgets/beedly_pet.h */
+    case SIM_Q_PET_HEARTS: {
+        extern uint8_t beedly_pet_hearts(void);
+        return beedly_pet_hearts();
+    }
+    case SIM_Q_PET_FOOD: {
+        extern uint8_t beedly_pet_food(void);
+        return beedly_pet_food();
+    }
+    case SIM_Q_PET_XP: {
+        extern uint16_t beedly_pet_xp(void);
+        return beedly_pet_xp();
+    }
+    case SIM_Q_PET_LEVEL: {
+        extern uint8_t beedly_pet_level(void);
+        return beedly_pet_level();
+    }
+    case SIM_Q_PET_DIRTY: {
+        extern bool beedly_pet_dirty(void);
+        return beedly_pet_dirty();
+    }
+    case SIM_Q_PET_ANIM: {
+        extern bool beedly_pet_animating(void);
+        return beedly_pet_animating();
+    }
+#endif
     default:
         return -1;
     }

@@ -1,0 +1,178 @@
+# Beedly pet (Tamagotchi menu) - `make sim-test-pet KEYMAP=../alphred_kb/config/corne.keymap`
+#   sim.exe --headless --script sim/examples/pet.txt --panel ideal --png ... --gif ...
+#
+# NOT RUN YET: written without a Windows/MSYS2 machine; run it once and fix expectations that
+# turn out to be off by a frame before relying on it.
+#
+# Needs a keymap with the BEEDLY layer (alphred_kb branch tamagotchi_behaviour):
+#   BT+LAYER:  1 = &to CHARMAC, 10 (P) = &beedly BEEDLY_OPEN   (held with 41 = &mo BLUETOOTH)
+#   BEEDLY:    8 (I) = BEEDLY_UP, 20 (K) = BEEDLY_DOWN, 35 (right of /) = BEEDLY_ENTER,
+#              2 = &to CHARWIN
+# All of these are right-half keys (the peripheral scans them and forwards them to the central),
+# so the peripheral stays active and never reaches IDLE during the run.
+# Default Kconfig: steps 10, start 50/50, XP 1 per action, 10 XP per level, save delay 30 s,
+# animation 4 x 1000 ms. Decay (30 / 15 min per point) does not show in a 70 s run.
+
+# ---- boot: defaults (the sim's settings store starts empty)
+at 800 expect layer == ALPH-WIN
+expect pet.menu == 0
+expect pet.hearts == 50
+expect pet.food == 50
+expect pet.level == 1
+expect pet.xp == 0
+expect pet.dirty == 0
+expect pet.anim == 0
+expect pet.saves == 0
+screenshot sim/build/out/pet/boot.png
+
+# ---- typing layer ALPH-MAC first, so SAVE has a non-default layer to return to
+at 1000 press 41
+wait 100
+tap 1
+release 41
+wait 200
+expect layer == ALPH-MAC
+
+# ---- open: hold &mo BLUETOOTH, tap P
+press 41
+wait 100
+tap 10
+release 41
+wait 200
+expect layer == BEEDLY
+expect pet.menu == 1
+expect pet.cursor == 0
+screenshot sim/build/out/pet/menu_pet.png
+
+# ---- cursor: clamps at both ends, no wrap
+tap 8
+wait 50
+expect pet.cursor == 0
+tap 20
+wait 50
+expect pet.cursor == 1
+tap 20
+wait 50
+expect pet.cursor == 2
+tap 20
+wait 50
+expect pet.cursor == 2
+screenshot sim/build/out/pet/menu_save.png
+tap 8
+wait 50
+expect pet.cursor == 1
+
+# ---- FEED: food +10, XP +1, food bar flashes, menu stays open
+tap 35
+wait 100
+expect pet.food == 60
+expect pet.xp == 1
+expect pet.dirty == 1
+expect pet.anim == 1
+expect layer == BEEDLY
+expect pet.menu == 1
+screenshot sim/build/out/pet/feed_step0.png
+wait 1000
+screenshot sim/build/out/pet/feed_step1.png
+# ENTER while the animation runs: ignored (no stacking)
+tap 35
+wait 100
+expect pet.food == 60
+expect pet.xp == 1
+wait 3300
+expect pet.anim == 0
+screenshot sim/build/out/pet/feed_done.png
+
+# ---- FEED until the bar is full (60 -> 100)
+tap 35
+wait 4400
+tap 35
+wait 4400
+tap 35
+wait 4400
+tap 35
+wait 4400
+expect pet.food == 100
+expect pet.xp == 5
+expect pet.anim == 0
+
+# ---- the one-shot save: armed by the first FEED (~2.3 s), written 30 s later
+at 33500 expect pet.saves == 1
+expect pet.dirty == 0
+
+# ---- FEED on a full bar does nothing at all: no XP, no animation, not dirty, no save
+tap 35
+wait 100
+expect pet.food == 100
+expect pet.xp == 5
+expect pet.anim == 0
+expect pet.dirty == 0
+screenshot sim/build/out/pet/food_full.png
+
+# ---- PET x5: hearts 50 -> 100, XP 5 -> 10 = level 2 with 0 XP
+tap 8
+wait 50
+expect pet.cursor == 0
+tap 35
+wait 100
+expect pet.hearts == 60
+expect pet.xp == 6
+expect pet.anim == 1
+screenshot sim/build/out/pet/pet_step0.png
+wait 1000
+screenshot sim/build/out/pet/pet_step1.png
+wait 3300
+expect pet.anim == 0
+tap 35
+wait 4400
+tap 35
+wait 4400
+tap 35
+wait 4400
+tap 35
+wait 100
+expect pet.hearts == 100
+expect pet.level == 2
+expect pet.xp == 0
+wait 4300
+screenshot sim/build/out/pet/level2.png
+# full hearts: nothing
+tap 35
+wait 100
+expect pet.hearts == 100
+expect pet.level == 2
+expect pet.xp == 0
+expect pet.anim == 0
+
+# ---- SAVE: written now, menu closed, back on ALPH-MAC (the layer below BEEDLY)
+expect pet.dirty == 1
+tap 20
+wait 50
+tap 20
+wait 50
+expect pet.cursor == 2
+tap 35
+wait 200
+expect pet.saves == 2
+expect pet.dirty == 0
+expect pet.menu == 0
+expect layer == ALPH-MAC
+screenshot sim/build/out/pet/saved.png
+# the 30 s timer armed by the first PET was replaced by SAVE: no second write
+wait 35000
+expect pet.saves == 2
+
+# ---- reopen: cursor back on PET; leaving with &to CHARWIN on the BEEDLY layer closes the menu
+press 41
+wait 100
+tap 10
+release 41
+wait 200
+expect pet.menu == 1
+expect pet.cursor == 0
+tap 2
+wait 200
+expect layer == ALPH-WIN
+expect pet.menu == 0
+expect heap_peak.peripheral < 8192
+screenshot sim/build/out/pet/closed.png

@@ -68,6 +68,44 @@ A missing tag stops the export with an error that lists the tags found. Frame co
 
 Make sure your keymap repo's `west.yml` points to this repo (instead of zmk-nice-oled) and the corresponding branch, and you're good to go.
 
+# Beedly pet (Tamagotchi)
+
+Beedly can be petted and fed. The **right half owns the pet**: a hearts bar, a food bar, XP and a level, saved in its flash. The **left half only owns a menu cursor**: a PET / FEED / SAVE menu drawn over the left screen, which sends the chosen action to the right half over the split link.
+
+**Behaviour.** The shield overlay (`nice_epaper.overlay`) declares `beedly: beedly { compatible = "zmk,behavior-beedly"; #binding-cells = <1>; }` for both halves. In your keymap, `#include <dt-bindings/zmk/beedly.h>` (this repo is a Zephyr module with `dts_root: .`, so the header and the binding are found automatically) and add a layer whose `display-name` is `BEEDLY`:
+
+| Binding | Where | What it does |
+| --- | --- | --- |
+| `&beedly BEEDLY_OPEN` | any layer (alphred_kb: BT+LAYER + P) | activates the BEEDLY layer, cursor on PET |
+| `&beedly BEEDLY_UP` / `BEEDLY_DOWN` | BEEDLY layer | moves the cursor; stops at PET / SAVE (no wrap) |
+| `&beedly BEEDLY_ENTER` | BEEDLY layer | PET or FEED: sent to the right half, the menu stays open. SAVE: sent, and the BEEDLY layer is turned off, so the layer below it (ALPH-WIN / ALPH-MAC) is back |
+
+`BEEDLY_PET` (16), `BEEDLY_FEED` (17) and `BEEDLY_SAVE` (18) are what the left half sends; never bind them. The menu is shown whenever the BEEDLY layer is active, so any other way off the layer (for example a `&to` key on it) closes it too.
+
+**Screens.** Left: the menu covers the WPM graph and the WPM number (a framed box, the cursor row inverted with `>`); battery, signal, the small Beedly, the profile dots and the layer name ("BEEDLY", the menu's title) stay. Right: the Beedly art already has a "BEEDLY : LVL 5" pill and three bars. The level digit and the three bars are now live: hearts (under the heart icon), food (under the food icon) and XP to the next level (under the "Zz" icon). PET floats small hearts up beside Beedly; either action flashes the bar that changed between its old and new value, one step per second, four steps. Presses during an animation are ignored. A full bar makes the action do nothing at all: no XP, no animation, nothing to save, so mashing cannot level Beedly up.
+
+**Decay.** Hearts and food go down over time, computed from the right half's uptime only when its screen is redrawn, an action arrives or the stats are saved; there is no timer. Time while the half is off or in deep sleep does not count. The bars catch up on the next redraw (any action, battery report or connection change).
+
+**Saving** (right half, settings key `beedly/pet`, one versioned record; a record of another version or size loads the defaults: 50 / 50, level 1). Stats are written only when something changed since the last save, and only when: you choose SAVE, 30 s after the first change (one-shot timer), the right half goes idle, or it goes to deep sleep (written synchronously before power-off).
+
+**Kconfig** (`boards/shields/nice_oled/nice_epaper/Kconfig.defconfig`, set them in your keymap's `.conf`):
+
+| Option | Default | |
+| --- | --- | --- |
+| `CONFIG_NICE_BEETLE_PET` | `y` | the whole feature (needs a split build and the `beedly` node) |
+| `CONFIG_NICE_BEETLE_PET_LAYER_NAME` | `"BEEDLY"` | menu layer, by display-name (case-insensitive) |
+| `CONFIG_NICE_BEETLE_PET_HEARTS_STEP` / `_FOOD_STEP` | 10 / 10 | added per PET / FEED (bars are 0..100) |
+| `CONFIG_NICE_BEETLE_PET_HEARTS_DECAY_MINUTES` / `_FOOD_DECAY_MINUTES` | 30 / 15 | minutes of uptime per point lost, 0 = none |
+| `CONFIG_NICE_BEETLE_PET_XP_PER_ACTION` | 1 | XP per effective PET / FEED |
+| `CONFIG_NICE_BEETLE_PET_XP_PER_LEVEL` | 10 | XP per level |
+| `CONFIG_NICE_BEETLE_PET_MAX_LEVEL` | 9 | top level (1 or 2 digits) |
+| `CONFIG_NICE_BEETLE_PET_SAVE_DELAY_SECONDS` | 30 | the one-shot save after a change |
+| `CONFIG_NICE_BEETLE_PET_ANIM_STEP_MS` | 1000 | animation step |
+
+Nothing of this runs while typing: no key-press listener, no timer while idle; the left screen is redrawn on menu keys and layer changes only, the right one on actions.
+
+The simulator can run the whole flow (`make sim-test-pet KEYMAP=<path to alphred_kb>/config/corne.keymap`, see [sim/README.md](sim/README.md#beedly-pet)).
+
 # Simulator (preview screens on your PC)
 
 `make sim` builds and opens a Windows simulator of both halves' nice!view screens (central on the left, peripheral on the right) driven by the real widget code and ZMK's keymap/behaviour engine, built against the same ZMK `main` and LVGL 9 as the firmware, using the [alphred_kb](https://github.com/J-Jaywalker/alphred_kb) Corne keymap (override with `KEYMAP=...`). Press keys with your PC keyboard or by clicking the on-screen Corne, and change battery, USB/charging, BLE, split link and caps lock from the window. `make sim-test` runs a scripted headless check that writes PNG/GIF output.

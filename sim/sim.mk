@@ -83,9 +83,12 @@ sim_cc = @echo "  CC [$(1)] $<" && $(SIM_CC) $(sim_common_flags) $(3) -DSIM_LINK
   -I$(SIM_GEN) \
   -I$(SIM_ZMK)/app/include -I$(SIM_ZMK)/app/module/include -I$(SIM_ZEPHYR)/include -I$(SIM_ZEPHYR)/modules/lvgl/include \
   -I$(SIM_LVGL) -I$(SIM_LVGL)/src -I$(dir $<) \
+  -Iinclude \
   -MMD -MP -c $< -o $@
+# (-Iinclude: this repo's include/, <dt-bindings/zmk/beedly.h>; the firmware build adds it for
+# the shield library in nice_epaper/CMakeLists.txt)
 
-.PHONY: sim sim-build sim-run sim-watch sim-test sim-deps sim-clean sim-distclean sim-fetch sim-gen sim-compile
+.PHONY: sim sim-build sim-run sim-watch sim-test sim-test-pet sim-deps sim-clean sim-distclean sim-fetch sim-gen sim-compile
 
 SIM_PANEL_ARG = $(if $(PANEL_EMU),--panel $(PANEL_EMU),)$(if $(EPAPER_EMU), --epaper $(EPAPER_EMU),)
 
@@ -124,6 +127,17 @@ sim-test: sim-build
 	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/beedly.txt --panel ideal --frames $(SIM_BEEDLY_OUT)/frames --png $(SIM_BEEDLY_OUT)/final.png --gif $(SIM_BEEDLY_OUT)/beedly.gif
 	$(SIM_PY) $(SIM_DIR)/tools/check_beedly.py --frames $(SIM_BEEDLY_OUT)/frames --script $(SIM_DIR)/examples/beedly.txt
 	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/wpm.txt --png $(SIM_BUILD)/out/wpm.png
+
+# Beedly pet scenario (sim/examples/pet.txt): needs a keymap with the BEEDLY layer and the
+# &beedly bindings, e.g. a local alphred_kb checkout of the tamagotchi_behaviour branch:
+#   make sim-test-pet KEYMAP=../alphred_kb/config/corne.keymap
+# (alphred_kb's default branch, which the sim clones when KEYMAP is not given, has no BEEDLY
+# layer: the script then stops at its first `expect layer == BEEDLY`.)
+SIM_PET_OUT := $(SIM_BUILD)/out/pet
+sim-test-pet: sim-build
+	$(SIM_WAIT_EXE)
+	@mkdir -p $(SIM_PET_OUT)
+	$(SIM_BUILD)/bin/sim.exe --headless --script $(SIM_DIR)/examples/pet.txt --panel ideal --png $(SIM_PET_OUT)/final.png --gif $(SIM_PET_OUT)/pet.gif $(SIM_ARGS)
 
 # parallel compile by default (NUMBER_OF_PROCESSORS is set by Windows); an
 # explicit make -jN wins

@@ -1,0 +1,12 @@
+# Copyright (c) 2024 The ZMK Contributors
+# SPDX-License-Identifier: MIT
+
+description: |
+  Beedly pet. On the central half the keymap parameters (BEEDLY_OPEN/UP/DOWN/ENTER from
+  dt-bindings/zmk/beedly.h) drive the menu on the left screen; BEEDLY_ENTER sends the chosen
+  action (BEEDLY_PET/FEED/SAVE) to the peripheral half, which runs it on this same behaviour.
+  The node must exist on both halves (boards/shields/nice_oled/nice_epaper.overlay).
+
+compatible: "zmk,behavior-beedly"
+
+include: one_param.yaml

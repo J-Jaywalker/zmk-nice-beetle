@@ -2,3 +2,5 @@ name: "nice!oled"
 build:
   settings:
     board_root: .
+    # dts/bindings (zmk,behavior-beedly) and include/dt-bindings/zmk/beedly.h for keymaps
+    dts_root: .

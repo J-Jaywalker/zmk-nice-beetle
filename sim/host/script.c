@@ -326,6 +326,15 @@ static const struct qdef qdefs[] = {
     {"heap_peak.central", 0, SIM_Q_LVGL_HEAP_PEAK, K_NUM},
     {"heap_peak.peripheral", 1, SIM_Q_LVGL_HEAP_PEAK, K_NUM},
     {"activity", 0, SIM_Q_ACTIVITY_STATE, K_ACTIVITY},
+    {"pet.menu", 0, SIM_Q_PET_MENU_OPEN, K_BOOL},
+    {"pet.cursor", 0, SIM_Q_PET_MENU_CURSOR, K_NUM},
+    {"pet.hearts", 1, SIM_Q_PET_HEARTS, K_NUM},
+    {"pet.food", 1, SIM_Q_PET_FOOD, K_NUM},
+    {"pet.xp", 1, SIM_Q_PET_XP, K_NUM},
+    {"pet.level", 1, SIM_Q_PET_LEVEL, K_NUM},
+    {"pet.dirty", 1, SIM_Q_PET_DIRTY, K_BOOL},
+    {"pet.anim", 1, SIM_Q_PET_ANIM, K_BOOL},
+    {"pet.saves", 1, SIM_Q_PET_SAVES, K_NUM},
     {"typed", 0, -1, K_TYPED},
 };
 

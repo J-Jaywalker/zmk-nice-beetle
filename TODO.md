@@ -23,10 +23,16 @@ A living and ever expanding list of improvements and ideas to improve Beedly.
   - [ ] Adjust animation speed or brightness based on charge level
 
 - [ ] Add interactive Tamagotchi-like behavior to Beedly  
+  - [X] `&beedly` behaviour: PET / FEED / SAVE menu on the left screen (BEEDLY layer), actions sent to the right half over the split link
+  - [X] Hearts and food bars, XP and level on the right screen (over the art's mock HUD); PET hearts and bar-flash animations
+  - [X] Lazy hunger / happiness decay from uptime (no timers)
+  - [X] Store "stats" in persistent memory (right half, `beedly/pet` settings record)
+  - [X] Simulator scenario (`make sim-test-pet`) - written, not yet run
+  - [ ] Verify on hardware (menu, split delivery, saves across power cycles, deep-sleep save)
+  - [ ] Redraw the art's HUD: the third bar shows XP under a "Zz" icon (there is no sleep stat)
   - [ ] Track typing activity to simulate "feeding"
   - [ ] Idle timer to trigger "boredom" or "sleep"
   - [ ] Basic mood states (happy, hungry, tired, annoyed)
-  - [ ] Optional: store "stats" in persistent memory or host-only flash
 
 - [X] Beedly to replace Luna animations on the LHS (central) screen (`beedly_left.aseprite`, `make beedly_left`)
 

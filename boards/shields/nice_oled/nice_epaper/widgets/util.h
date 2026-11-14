@@ -35,6 +35,7 @@ struct status_state {
     uint8_t layer_index;
     const char *layer_label;
     uint8_t wpm[10];
+    bool beedly_menu_open; /* Beedly pet menu layer active (beedly_menu.h) */
 #else
     bool connected;
 #endif

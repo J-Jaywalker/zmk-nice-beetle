@@ -138,6 +138,23 @@ for whoever continues the work. Nothing has been committed.
 - Sim: `SIM_Q_WPM` (`expect wpm`, window, log) = our counter; new `SIM_Q_WPM_ZMK` / `wpm_zmk` =
   ZMK's. `sim/examples/wpm.txt` (11 expects) in `make sim-test`.
 
+## Beedly pet (Tamagotchi) - NOT built or run yet
+- Written on a Mac without MSYS2: nothing below has been compiled (firmware or sim) or run.
+- Firmware: `behaviors/behavior_beedly.c` (both halves), `widgets/beedly_menu.c` (central),
+  `widgets/beedly_pet.c` (peripheral), `include/dt-bindings/zmk/beedly.h`,
+  `dts/bindings/behaviors/zmk,behavior-beedly.yaml`, node in `nice_epaper.overlay`,
+  `zephyr/module.yml` `dts_root: .`.
+- Sim: gen_config.py adds `include/`, `dts/` (DTS include path) and `dts/bindings` (bindings, so
+  `CONFIG_DT_HAS_ZMK_BEHAVIOR_BEEDLY_ENABLED` appears in Kconfig.dts); sim.mk compiles with
+  `-Iinclude`; new queries `SIM_Q_PET_*` (sim_api.h, appended: ABI-compatible) answered by
+  sim_main.c via the widgets' public getters; settings.c counts `beedly/...` saves.
+- `make sim-test-pet KEYMAP=../alphred_kb/config/corne.keymap` runs `examples/pet.txt`.
+  First run: check the `at 33500 expect pet.saves == 1` timing and the screenshots
+  (`sim/build/out/pet/*.png`: menu box rows 64..117 on the left; live level digit, bars and
+  hearts on the right).
+- Central heap at boot should be unchanged (menu draws into the canvas, no objects): beedly.txt's
+  `expect heap == 2480` still applies. The peripheral gains three canvas objects.
+
 ## Not verified / open issues
 - Central Beedly on real hardware (flash): unverified, as everything else here.
 - Peripheral Beedly is invisible with CONFIG_NICE_VIEW_WIDGET_INVERTED=y (palette, see above).
